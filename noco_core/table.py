@@ -11,7 +11,7 @@ Cada método delega 1:1 en NocoClient, simplemente fijando table_id.
 """
 
 from __future__ import annotations
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Dict, Any
 
 from .result import NocoResult
 
@@ -70,11 +70,27 @@ class NocoTable:
             return error_result
         return self.client.create_records(self.table_id, records)
 
-    def update(self, records: dict | list[dict]) -> NocoResult:
-        error_result = self._check_resolved("update")
-        if error_result is not None:
-            return error_result
-        return self.client.update_records(self.table_id, records)
+    def update(self, record_id: str, data: Dict[str, Any]) -> NocoResult:
+        """
+        Actualiza un registro existente en la tabla.
+        
+        Args:
+            record_id: ID del registro a actualizar
+            data: Diccionario con los campos a actualizar
+            
+        Returns:
+            NocoResult con el resultado de la operación
+        """
+        # Verificar si la tabla está resuelta
+        if self.is_unresolved():
+            return NocoResult.fail(
+                operation="update",
+                errors=[f"No se pudo resolver la tabla '{self.name}': {self.resolution_error}"],
+                table=self.name,
+            )
+        
+        # Delegar al cliente
+        return self.client.update_record(self.table_id, record_id, data)
 
     def delete(self, record_ids: int | list[int]) -> NocoResult:
         error_result = self._check_resolved("delete")
