@@ -62,6 +62,32 @@ class MainWindow(QMainWindow):
         
         self._extra_sidebar_nodes = []
 
+    def setCentralWidget(self, widget: QWidget) -> None:
+        """
+        Overrides setCentralWidget to integrate the widget into the QtAds CDockManager
+        instead of replacing it, preserving the docking system and other dock panels.
+        """
+        # Set config flag to hide title bar for the central widget
+        self.dock_manager.setConfigFlag(QtAds.CDockManager.HideSingleCentralWidgetTitleBar, True)
+
+        # Create a non-closable, non-movable, non-floatable CDockWidget for the center
+        dock_widget = QtAds.CDockWidget(self.dock_manager, "CentralView")
+        dock_widget.setWidget(widget)
+        dock_widget.setFeature(QtAds.CDockWidget.DockWidgetClosable, False)
+        dock_widget.setFeature(QtAds.CDockWidget.DockWidgetMovable, False)
+        dock_widget.setFeature(QtAds.CDockWidget.DockWidgetFloatable, False)
+        dock_widget.setFeature(QtAds.CDockWidget.NoTab, True)
+        
+        # Set as central widget of CDockManager
+        self.dock_manager.setCentralWidget(dock_widget)
+        
+        # Keep references to prevent garbage collection and allow retrieval
+        self._central_dock_widget = dock_widget
+        self._central_widget_ref = widget
+
+    def centralWidget(self) -> QWidget | None:
+        return getattr(self, "_central_widget_ref", None)
+
     def add_dock_panel(self, widget: QWidget, title: str, area: str = "left") -> QtAds.CDockWidget:
         """
         Crea un panel acoplable (CDockWidget) con el widget proporcionado y lo añade

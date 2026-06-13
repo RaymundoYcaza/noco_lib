@@ -121,3 +121,26 @@ def test_add_sidebar_node(mock_client):
     assert window._extra_sidebar_nodes[0] == node
 
 
+def test_set_central_widget_keeps_dock_manager(mock_client):
+    window = MainWindow(mock_client)
+    
+    # Verify we have a dock_manager
+    assert window.dock_manager is not None
+    
+    # Create a dummy central widget
+    dummy_center = QWidget()
+    
+    # Call setCentralWidget
+    window.setCentralWidget(dummy_center)
+    
+    # Check that centralWidget() returns the dummy widget
+    assert window.centralWidget() == dummy_center
+    
+    # Create a floating window using the dock manager to make sure it doesn't crash
+    widget = QWidget()
+    dock_widget = window.add_floating_window(widget, "Prueba test_set_central_widget")
+    assert dock_widget is not None
+    assert dock_widget.widget() == widget
+
+
+

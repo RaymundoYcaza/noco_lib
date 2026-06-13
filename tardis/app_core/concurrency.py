@@ -34,25 +34,32 @@ class CallbackBridge(QObject):
     Al ser un QObject creado en el hilo principal, PySide6 usará QueuedConnection de forma automática.
     """
     def __init__(self, on_success: Callable[[Any], None] | None, on_error: Callable[[Exception], None] | None, parent: QObject | None = None):
+        if parent is None:
+            from PySide6.QtWidgets import QApplication
+            parent = QApplication.instance()
         super().__init__(parent)
         self.on_success = on_success
         self.on_error = on_error
 
     @Slot(object)
     def handle_success(self, result: Any) -> None:
-        if self.on_success is not None:
-            try:
+        try:
+            if self.on_success is not None:
                 self.on_success(result)
-            except Exception as e:
-                logging.getLogger("tardis").exception("Exception in run_async on_success callback")
+        except Exception as e:
+            logging.getLogger("tardis").exception("Exception in run_async on_success callback")
+        finally:
+            self.deleteLater()
 
     @Slot(Exception)
     def handle_error(self, exc: Exception) -> None:
-        if self.on_error is not None:
-            try:
+        try:
+            if self.on_error is not None:
                 self.on_error(exc)
-            except Exception as e:
-                logging.getLogger("tardis").exception("Exception in run_async on_error callback")
+        except Exception as e:
+            logging.getLogger("tardis").exception("Exception in run_async on_error callback")
+        finally:
+            self.deleteLater()
 
 def run_async(fn: Callable, *args,
               on_success: Callable[[Any], None] | None = None,

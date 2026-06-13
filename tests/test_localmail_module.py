@@ -97,3 +97,46 @@ def test_register_module(mock_app, mock_client):
             assert isinstance(float_args[0], ComposerView)
             assert float_args[1] == "Redactar correo"
 
+
+def test_register_module_restores_and_wires(mock_app, mock_client):
+    """Test that register() restores last selected node and wires selection to email_list_view."""
+    from modules.localmail.views.sidebar_view import SidebarTreeView
+    from modules.localmail.views.email_list_view import EmailListView
+    
+    # We patch QSettings to simulate last selected node as "all:sent"
+    with patch("modules.localmail.module.QSettings") as mock_settings_cls, \
+         patch("modules.localmail.views.email_list_view.run_async") as mock_run_async:
+         
+        mock_settings = MagicMock()
+        mock_settings_cls.return_value = mock_settings
+        
+        # Simulate value for three_pane/splitter_sizes and three_pane/last_selected_node
+        def get_setting_value(key):
+            if key == "three_pane/last_selected_node":
+                return "all:sent"
+            return None
+        mock_settings.value.side_effect = get_setting_value
+        
+        # Call register
+        register(mock_app, mock_client)
+        
+        # Verify email_list_view exists
+        assert hasattr(mock_app, "email_list_view")
+        assert isinstance(mock_app.email_list_view, EmailListView)
+        
+        # Since last_selected was "all:sent", verify load was called on email_list_view with "sent" folder
+        assert mock_app.email_list_view._current_folder == "sent"
+        assert mock_app.email_list_view._current_mailboxes == ["test_user"]
+        
+        # Now trigger another node selection programmatically in the sidebar tree
+        # Click Inbox under Alicia (which is node ID: "test_user:inbox", with mailboxes=["test_user"])
+        mock_app.sidebar_view.select_node_by_id("test_user:inbox")
+        
+        # Assert load was triggered for "inbox" folder
+        assert mock_app.email_list_view._current_folder == "inbox"
+        assert mock_app.email_list_view._current_mailboxes == ["test_user"]
+        
+        # Check that it attempted to persist the new node selection
+        mock_settings.setValue.assert_any_call("three_pane/last_selected_node", "test_user:inbox")
+
+

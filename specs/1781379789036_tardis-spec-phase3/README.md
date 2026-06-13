@@ -417,7 +417,7 @@ everything downstream depends on having visible error logs.
 
 ### 9.3 — Email list pane
 
-- [ ] **9.3.1** Implement `modules/localmail/views/email_list_view.py`
+- [x] **9.3.1** Implement `modules/localmail/views/email_list_view.py`
       (`EmailListView`), replacing the old `InboxView` table portion.
       Steps:
       1. `QTableWidget` (or `QTableView`) with columns: Priority (icon),
@@ -456,7 +456,7 @@ everything downstream depends on having visible error logs.
       temporarily to confirm, then remove).
       Depends on: 9.2.3, 9.0.4.
 
-- [ ] **9.3.2** Wire sidebar → list.
+- [x] **9.3.2** Wire sidebar → list.
       Steps:
       1. In `modules/localmail/module.py`, connect
          `sidebar.node_selected` to a handler that:
@@ -480,7 +480,7 @@ everything downstream depends on having visible error logs.
       the app re-selects the last-used node.
       Depends on: 9.3.1, 9.2.2.
 
-- [ ] **9.3.3** Implement the filter bar.
+- [x] **9.3.3** Implement the filter bar.
       Steps:
       1. Create `modules/localmail/views/filter_bar.py`
          (`FilterBarView`): `QLineEdit` (search placeholder "Search

@@ -134,3 +134,27 @@ class SidebarTreeView(QTreeWidget):
                 only_unread=True,
                 on_success=make_callback()
             )
+
+    def find_item_by_id(self, node_id: str) -> QTreeWidgetItem | None:
+        def search(parent_item):
+            for i in range(parent_item.childCount()):
+                child = parent_item.child(i)
+                child_id = child.data(0, Qt.UserRole)
+                if child_id == node_id:
+                    return child
+                result = search(child)
+                if result:
+                    return result
+            return None
+        return search(self.invisibleRootItem())
+
+    def select_node_by_id(self, node_id: str) -> bool:
+        item = self.find_item_by_id(node_id)
+        if item:
+            self.setCurrentItem(item)
+            node = item.data(0, Qt.UserRole + 1)
+            if node:
+                self.node_selected.emit(node)
+                return True
+        return False
+

@@ -8,6 +8,8 @@ if TYPE_CHECKING:
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSplitter
 from PySide6.QtCore import Qt, QSettings
 from modules.localmail.views.sidebar_view import SidebarTreeView
+from modules.localmail.views.email_list_view import EmailListView
+from modules.localmail.views.filter_bar import FilterBarView
 from modules.localmail.views.reader_view import ReaderView
 from modules.localmail.views.composer_view import ComposerView
 
@@ -22,20 +24,20 @@ def register(app: MainWindow, client: NocoClient) -> None:
     # 2. Create the left Sidebar view and save reference
     app.sidebar_view = SidebarTreeView(app, client, mailboxes)
 
-    # 3. Create the center layout (filter bar placeholder + email list placeholder)
+    # 3. Create the center layout (filter bar + email list view)
     center_widget = QWidget()
     center_layout = QVBoxLayout(center_widget)
     center_layout.setContentsMargins(0, 0, 0, 0)
     center_layout.setSpacing(8)
 
-    app.filter_placeholder = QLabel("Filtros (Placeholder)")
-    app.filter_placeholder.setStyleSheet("background-color: #27272a; color: #a1a1aa; padding: 10px; border-radius: 4px;")
+    app.filter_bar_view = FilterBarView(app)
+    app.email_list_view = EmailListView(app, client)
     
-    app.list_placeholder = QLabel("Lista de Correos (Placeholder)")
-    app.list_placeholder.setStyleSheet("background-color: #18181b; color: #e1e1e6; padding: 20px; border: 1px solid #27272a; border-radius: 6px;")
+    # Wire filter bar changes to email list filtering
+    app.filter_bar_view.filter_changed.connect(app.email_list_view.apply_filter)
     
-    center_layout.addWidget(app.filter_placeholder)
-    center_layout.addWidget(app.list_placeholder)
+    center_layout.addWidget(app.filter_bar_view)
+    center_layout.addWidget(app.email_list_view)
 
     # 4. Create the right Reader view
     app.reader_view = ReaderView(app, client)
@@ -60,7 +62,26 @@ def register(app: MainWindow, client: NocoClient) -> None:
     # 6. Register three-pane widget as central widget of MainWindow
     app.setCentralWidget(splitter)
 
-    # 7. Add menu action for composing a new mail (floating window)
+    # 7. Wire sidebar -> list
+    def on_node_selected(node) -> None:
+        if node.folder is None:
+            return
+        app.email_list_view.load(client, node.mailboxes, node.folder)
+        # Store last selected node ID in QSettings
+        local_settings = QSettings("Tardis", "Tardis")
+        local_settings.setValue("three_pane/last_selected_node", node.id)
+
+    app.sidebar_view.node_selected.connect(on_node_selected)
+
+    # 8. Restore last selected node, default to All Mailboxes > Inbox (all:inbox)
+    last_selected_node_id = settings.value("three_pane/last_selected_node")
+    node_restored = False
+    if last_selected_node_id:
+        node_restored = app.sidebar_view.select_node_by_id(last_selected_node_id)
+    if not node_restored:
+        app.sidebar_view.select_node_by_id("all:inbox")
+
+    # 9. Add menu action for composing a new mail (floating window)
     def open_composer() -> None:
         composer = ComposerView(app, client, mailboxes)
         dock = app.add_floating_window(composer, "Redactar correo")
