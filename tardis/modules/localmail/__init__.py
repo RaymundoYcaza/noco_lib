@@ -1,0 +1,1 @@
+# LocalMail module package

@@ -354,13 +354,13 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
 
 ### 8.1 Preparación del monorepo
 
-- [ ] **8.1.1** Crear estructura de carpetas vacía según sección 4
+- [x] **8.1.1** Crear estructura de carpetas vacía según sección 4
       (incluyendo `__init__.py` donde aplique).
       Archivo(s): estructura completa de `tardis/`.
       Entrada: ninguna. Salida: árbol de carpetas creado.
       Depende de: ninguna.
 
-- [ ] **8.1.2** Mover/copiar el código existente de `noco_lib`
+- [x] **8.1.2** Mover/copiar el código existente de `noco_lib`
       (`noco_core`, `noco_discovery`, `noco_ext`, `noco_modules`,
       `noco_cli`) dentro de `tardis/noco_lib/`, sin modificar su
       contenido.
@@ -370,7 +370,7 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
       tomada en un comentario en `tardis/README.md`).
       Depende de: 8.1.1.
 
-- [ ] **8.1.3** Crear `tardis/pyproject.toml` con dependencias:
+- [x] **8.1.3** Crear `tardis/pyproject.toml` con dependencias:
       `PySide6>=6.7`, `PySide6-QtAds`, `python-dotenv>=1.0`, `requests>=2.31`
       (heredada de noco_lib), `typer>=0.12`, `questionary>=2.0` (si se
       conserva `noco_cli`).
@@ -379,7 +379,7 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
       Salida: `pyproject.toml` instalable con `pip install -e .`.
       Depende de: 8.1.1.
 
-- [ ] **8.1.4** Crear `tardis/.env.example`:
+- [x] **8.1.4** Crear `tardis/.env.example`:
       ```
       NOCO_BASE_URL=https://app.nocodb.com
       NOCO_TOKEN=tu_token_aqui
@@ -389,7 +389,7 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
       y agregar `.env` a `.gitignore`.
       Depende de: 8.1.1.
 
-- [ ] **8.1.5** Verificación: ejecutar un script temporal que haga
+- [x] **8.1.5** Verificación: ejecutar un script temporal que haga
       `from noco_lib.noco_core import NocoClient` (o la ruta de import que
       se haya decidido en 8.1.2) y llame
       `client.table("DIR_LOCAL-MAIL").meta()`, confirmando
@@ -400,14 +400,14 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
 
 ### 8.2 `app_core` — núcleo de la aplicación
 
-- [ ] **8.2.1** Implementar `app_core/config.py` con `TardisConfig` y
+- [x] **8.2.1** Implementar `app_core/config.py` con `TardisConfig` y
       `load_tardis_config()` exactamente según sección 5.4.
       Entrada: `.env` cargado vía `noco_core.config.load_env()`,
       `getpass.getuser()`.
       Salida: instancia `TardisConfig` con los 5 campos poblados.
       Depende de: 8.1.5.
 
-- [ ] **8.2.2** Implementar `app_core/concurrency.py` con `run_async()`
+- [x] **8.2.2** Implementar `app_core/concurrency.py` con `run_async()`
       según contrato de sección 5.1, basado en `QThreadPool` + `QRunnable`
       + `Signal`.
       Entrada: ninguna (módulo independiente).
@@ -415,7 +415,7 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
       dummy (`lambda: NocoResult.ok("read", data=[1,2,3])`).
       Depende de: 8.1.3 (PySide6 instalado).
 
-- [ ] **8.2.3** Implementar `app_core/main_window.py`:
+- [x] **8.2.3** Implementar `app_core/main_window.py`:
       - Clase `MainWindow(QMainWindow)`.
       - Integrar Qt Advanced Docking System (`PySide6-QtAds`):
         `self.dock_manager = QtAds.CDockManager(self)`.
@@ -429,7 +429,7 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
       Salida: ventana que abre vacía (sin módulos) sin errores.
       Depende de: 8.2.2.
 
-- [ ] **8.2.4** Implementar `app_core/module_registry.py`:
+- [x] **8.2.4** Implementar `app_core/module_registry.py`:
       `discover_and_register(main_window, client)` según contrato de
       sección 5.3. Usar `pkgutil.iter_modules` sobre `modules/`,
       `importlib.import_module`, `try/except` por módulo, log a stdout
@@ -441,7 +441,7 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
       aunque `modules/` esté vacía.
       Depende de: 8.2.3.
 
-- [ ] **8.2.5** Implementar `app_core/main.py`:
+- [x] **8.2.5** Implementar `app_core/main.py`:
       1. `config = load_tardis_config()`.
       2. `client = NocoClient(base_url=config.noco_base_url, token=config.noco_token, base_id=config.noco_base_id)`.
       3. `app = QApplication(sys.argv)`.
@@ -454,7 +454,7 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
       bloqueos.
       Depende de: 8.2.1, 8.2.4.
 
-- [ ] **8.2.6** **Checkpoint manual**: ejecutar `python -m app_core.main`
+- [x] **8.2.6** **Checkpoint manual**: ejecutar `python -m app_core.main`
       (o `python app_core/main.py`, según se resuelva el entrypoint) y
       confirmar visualmente que la ventana abre, no hay tracebacks en
       consola, y `print` de `module_registry` no reporta errores (aunque
@@ -463,7 +463,7 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
 
 ### 8.3 Plantilla de módulo
 
-- [ ] **8.3.1** Crear `modules/_template_module/module.py` con:
+- [x] **8.3.1** Crear `modules/_template_module/module.py` con:
       ```python
       def register(app: "MainWindow", client: "NocoClient") -> None:
           """
@@ -484,7 +484,7 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
 
 ### 8.4 Módulo `localmail`
 
-- [ ] **8.4.1** Implementar `modules/localmail/service.py` con las 7
+- [x] **8.4.1** Implementar `modules/localmail/service.py` con las 7
       funciones de sección 6 (`list_inbox`, `list_sent`, `get_email`,
       `mark_as_read`, `archive_email`, `move_to_trash`, `send_email`,
       `notify`) — son 8 funciones en total, contar `notify`.
@@ -498,7 +498,7 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
       directamente — eso es responsabilidad de las vistas — sí depende
       conceptualmente de que `NocoResult` esté disponible vía `noco_lib`).
 
-- [ ] **8.4.2** Implementar `modules/localmail/views/inbox_view.py`
+- [x] **8.4.2** Implementar `modules/localmail/views/inbox_view.py`
       (`InboxView`) según sección 7.1, incluyendo la `Signal(int)
       email_selected`.
       Entrada: `main_window`, `client`, `user_id`.
@@ -509,14 +509,14 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
       datos, vía override manual para pruebas).
       Depende de: 8.4.1, 8.2.3.
 
-- [ ] **8.4.3** Implementar `modules/localmail/views/reader_view.py`
+- [x] **8.4.3** Implementar `modules/localmail/views/reader_view.py`
       (`ReaderView`) según sección 7.2.
       Entrada: `main_window`, `client`.
       Salida: widget que, al llamar `.show_email(email_id)` con un id
       real, muestra `title`/`from`/`to`/`cc`/`CreatedAt`/`body`.
       Depende de: 8.4.1, 8.2.3.
 
-- [ ] **8.4.4** Implementar `modules/localmail/views/composer_view.py`
+- [x] **8.4.4** Implementar `modules/localmail/views/composer_view.py`
       (`ComposerView`) según sección 7.3.
       Entrada: `main_window`, `client`, `user_id` (para `from_user`).
       Salida: formulario funcional que, al enviar con datos válidos hacia
@@ -524,7 +524,7 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
       verificable luego con `InboxView` de ese destinatario.
       Depende de: 8.4.1, 8.2.3.
 
-- [ ] **8.4.5** Implementar `modules/localmail/module.py` con
+- [x] **8.4.5** Implementar `modules/localmail/module.py` con
       `register(app, client)`:
       - `user_id = app.get_client()` → NO, `user_id` viene de
         `TardisConfig` (pasar `config.user_id` al `register`, o exponer
@@ -550,7 +550,7 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
       "LocalMail > Redactar" abre ventana flotante funcional.
       Depende de: 8.4.2, 8.4.3, 8.4.4, 8.2.4.
 
-- [ ] **8.4.6** (Opcional, Fase 1 extendida) Agregar acción "Archivar" en
+- [x] **8.4.6** (Opcional, Fase 1 extendida) Agregar acción "Archivar" en
       menú contextual de `InboxView` (click derecho sobre fila) que llame
       `run_async(service.archive_email, client, email_id, on_success=...)`
       y refresque la lista. Documentar en `modules/localmail/README.md`
@@ -558,7 +558,7 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
       pero sin entrada de UI todavía (queda para Fase 2).
       Depende de: 8.4.5.
 
-- [ ] **8.4.7** **Checkpoint manual de Fase 1**: con dos usuarios de
+- [x] **8.4.7** **Checkpoint manual de Fase 1**: con dos usuarios de
       prueba (ej. ejecutar Tardis en dos sesiones/configuraciones de
       `.env` distintas, o simular cambiando `TARDIS_LOCALMAIL_TABLE`/
       `user_id` manualmente para pruebas), confirmar el flujo completo:
@@ -570,7 +570,7 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
 
 ### 8.5 Empaquetado
 
-- [ ] **8.5.1** Crear configuración de PyInstaller modo **one-folder**
+- [x] **8.5.1** Crear configuración de PyInstaller modo **one-folder**
       (`tardis.spec` o comando documentado en `README.md`):
       `pyinstaller --name Tardis --onedir app_core/main.py` (ajustar
       `--add-data` para incluir `.env.example`, plantillas futuras, y
@@ -583,7 +583,7 @@ def notify(client, to_user: str, subject: str, body: str, module_origin: str) ->
       conecta a NocoDB usando un `.env` colocado junto al ejecutable.
       Depende de: 8.4.7.
 
-- [ ] **8.5.2** Documentar en `README.md` el proceso de build y
+- [x] **8.5.2** Documentar en `README.md` el proceso de build y
       distribución (qué archivos copiar a compañeros, dónde colocar
       `.env`, cómo actualizar cuando haya nueva versión).
       Depende de: 8.5.1.
