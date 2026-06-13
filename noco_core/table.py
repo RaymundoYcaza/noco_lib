@@ -42,32 +42,79 @@ class NocoTable:
     def read(self, where: Optional[str] = None, limit: Optional[int] = None,
              offset: int = 0, fields: Optional[list[str]] = None,
              sort: Optional[str] = None) -> NocoResult:
-        return self.client.get_records(
-            self.table_id, where=where, limit=limit, offset=offset,
+        if self.is_unresolved():
+            return NocoResult.fail(
+                operation="read",
+                errors=[f"No se pudo resolver la tabla '{self._name}': {self._resolution_error}"],
+                table=self._name,
+            )
+        return self._client.get_records(
+            self._table_id, where=where, limit=limit, offset=offset,
             fields=fields, sort=sort,
         )
 
     # ---- escritura ----
     def create(self, records: dict | list[dict]) -> NocoResult:
-        return self.client.create_records(self.table_id, records)
+        if self.is_unresolved():
+            return NocoResult.fail(
+                operation="create",
+                errors=[f"No se pudo resolver la tabla '{self._name}': {self._resolution_error}"],
+                table=self._name,
+            )
+        return self._client.create_records(self._table_id, records)
 
     def update(self, records: dict | list[dict]) -> NocoResult:
-        return self.client.update_records(self.table_id, records)
+        if self.is_unresolved():
+            return NocoResult.fail(
+                operation="update",
+                errors=[f"No se pudo resolver la tabla '{self._name}': {self._resolution_error}"],
+                table=self._name,
+            )
+        return self._client.update_records(self._table_id, records)
 
     def delete(self, record_ids: int | list[int]) -> NocoResult:
-        return self.client.delete_records(self.table_id, record_ids)
+        if self.is_unresolved():
+            return NocoResult.fail(
+                operation="delete",
+                errors=[f"No se pudo resolver la tabla '{self._name}': {self._resolution_error}"],
+                table=self._name,
+            )
+        return self._client.delete_records(self._table_id, record_ids)
 
     # ---- esquema ----
     def meta(self) -> NocoResult:
-        return self.client.get_table_meta(self.table_id)
+        """Obtiene los metadatos de la tabla."""
+        if self.is_unresolved():
+            return NocoResult.fail(
+                operation="meta",
+                errors=[f"No se pudo resolver la tabla '{self._name}': {self._resolution_error}"],
+                table=self._name,
+            )
+        
+        result = self._client.get_table_meta(self._table_id)
+        if result.success:
+            self._name = result.data.get("title", self._name)
+        return result
 
     def add_column(self, column_def: dict) -> NocoResult:
-        return self.client.create_column(self.table_id, column_def)
+        if self.is_unresolved():
+            return NocoResult.fail(
+                operation="add_column",
+                errors=[f"No se pudo resolver la tabla '{self._name}': {self._resolution_error}"],
+                table=self._name,
+            )
+        return self._client.create_column(self._table_id, column_def)
 
     # ---- discovery (delegado, ver noco_discovery) ----
     def discover(self, depth: int = 1) -> NocoResult:
+        if self.is_unresolved():
+            return NocoResult.fail(
+                operation="discover",
+                errors=[f"No se pudo resolver la tabla '{self._name}': {self._resolution_error}"],
+                table=self._name,
+            )
         from noco_discovery.discovery import discover_table
-        return discover_table(self.client, self.table_id, depth=depth)
+        return discover_table(self._client, self._table_id, depth=depth)
 
     def is_unresolved(self) -> bool:
         """Verifica si la tabla está en estado no resuelto (table_id es None)"""
