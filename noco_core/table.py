@@ -23,99 +23,82 @@ class NocoTable:
     def __init__(
         self,
         client: "NocoClient",
-        table_id: str,
-        name: Optional[str] = None,
-        resolution_error: Optional[str] = None,
+        table_id: str | None,
+        name: str,
+        resolution_error: str | None = None,
     ):
-        self._client = client
-        self._table_id = table_id
-        self._name = name or table_id
-        self._resolution_error = resolution_error
+        self.client = client
+        self.table_id = table_id
+        self.name = name
+        self.resolution_error = resolution_error
 
     def __repr__(self) -> str:
-        if self.is_unresolved():
-            error_msg = self._resolution_error or "Error desconocido"
-            return f"<NocoTable name='{self._name}' UNRESOLVED: {error_msg}>"
-        return f"<NocoTable name='{self._name}' id='{self._table_id}'>"
+        if self.table_id is None:
+            return f"<NocoTable name={self.name!r} UNRESOLVED: {self.resolution_error!r}>"
+        return f"<NocoTable name={self.name!r} id={self.table_id!r}>"
+
+    def is_unresolved(self) -> bool:
+        """Verifica si la tabla está en estado no resuelto (table_id es None)"""
+        return self.table_id is None
+
+    def _check_resolved(self, operation: str) -> NocoResult | None:
+        """Verifica si la tabla está resuelta. Si no, devuelve un NocoResult.fail."""
+        if self.table_id is None:
+            return NocoResult.fail(
+                operation,
+                f"No se pudo resolver la tabla '{self.name}': {self.resolution_error}",
+                table=self.name,
+            )
+        return None
 
     # ---- lectura ----
     def read(self, where: Optional[str] = None, limit: Optional[int] = None,
              offset: int = 0, fields: Optional[list[str]] = None,
              sort: Optional[str] = None) -> NocoResult:
-        if self.is_unresolved():
-            return NocoResult.fail(
-                operation="read",
-                errors=[f"No se pudo resolver la tabla '{self._name}': {self._resolution_error}"],
-                table=self._name,
-            )
-        return self._client.get_records(
-            self._table_id, where=where, limit=limit, offset=offset,
+        error_result = self._check_resolved("read")
+        if error_result is not None:
+            return error_result
+        return self.client.get_records(
+            self.table_id, where=where, limit=limit, offset=offset,
             fields=fields, sort=sort,
         )
 
     # ---- escritura ----
     def create(self, records: dict | list[dict]) -> NocoResult:
-        if self.is_unresolved():
-            return NocoResult.fail(
-                operation="create",
-                errors=[f"No se pudo resolver la tabla '{self._name}': {self._resolution_error}"],
-                table=self._name,
-            )
-        return self._client.create_records(self._table_id, records)
+        error_result = self._check_resolved("create")
+        if error_result is not None:
+            return error_result
+        return self.client.create_records(self.table_id, records)
 
     def update(self, records: dict | list[dict]) -> NocoResult:
-        if self.is_unresolved():
-            return NocoResult.fail(
-                operation="update",
-                errors=[f"No se pudo resolver la tabla '{self._name}': {self._resolution_error}"],
-                table=self._name,
-            )
-        return self._client.update_records(self._table_id, records)
+        error_result = self._check_resolved("update")
+        if error_result is not None:
+            return error_result
+        return self.client.update_records(self.table_id, records)
 
     def delete(self, record_ids: int | list[int]) -> NocoResult:
-        if self.is_unresolved():
-            return NocoResult.fail(
-                operation="delete",
-                errors=[f"No se pudo resolver la tabla '{self._name}': {self._resolution_error}"],
-                table=self._name,
-            )
-        return self._client.delete_records(self._table_id, record_ids)
+        error_result = self._check_resolved("delete")
+        if error_result is not None:
+            return error_result
+        return self.client.delete_records(self.table_id, record_ids)
 
     # ---- esquema ----
     def meta(self) -> NocoResult:
-        """Obtiene los metadatos de la tabla."""
-        if self.is_unresolved():
-            return NocoResult.fail(
-                operation="meta",
-                errors=[f"No se pudo resolver la tabla '{self._name}': {self._resolution_error}"],
-                table=self._name,
-            )
-        
-        result = self._client.get_table_meta(self._table_id)
-        if result.success:
-            self._name = result.data.get("title", self._name)
-        return result
+        error_result = self._check_resolved("meta")
+        if error_result is not None:
+            return error_result
+        return self.client.get_table_meta(self.table_id)
 
     def add_column(self, column_def: dict) -> NocoResult:
-        if self.is_unresolved():
-            return NocoResult.fail(
-                operation="add_column",
-                errors=[f"No se pudo resolver la tabla '{self._name}': {self._resolution_error}"],
-                table=self._name,
-            )
-        return self._client.create_column(self._table_id, column_def)
+        error_result = self._check_resolved("update")
+        if error_result is not None:
+            return error_result
+        return self.client.create_column(self.table_id, column_def)
 
     # ---- discovery (delegado, ver noco_discovery) ----
     def discover(self, depth: int = 1) -> NocoResult:
-        if self.is_unresolved():
-            return NocoResult.fail(
-                operation="discover",
-                errors=[f"No se pudo resolver la tabla '{self._name}': {self._resolution_error}"],
-                table=self._name,
-            )
+        error_result = self._check_resolved("schema")
+        if error_result is not None:
+            return error_result
         from noco_discovery.discovery import discover_table
-        return discover_table(self._client, self._table_id, depth=depth)
-
-    def is_unresolved(self) -> bool:
-        """Verifica si la tabla está en estado no resuelto (table_id es None)"""
-        return self._table_id is None
+        return discover_table(self.client, self.table_id, depth=depth)
