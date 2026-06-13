@@ -331,7 +331,7 @@ everything downstream depends on having visible error logs.
 
 ### 9.2 — Three-pane layout shell
 
-- [ ] **9.2.1** Install `qtawesome` and verify it renders.
+- [x] **9.2.1** Install `qtawesome` and verify it renders.
       Steps:
       1. Add `qtawesome` to `pyproject.toml` dependencies, run
          `pip install -e .` (or equivalent).
@@ -345,7 +345,7 @@ everything downstream depends on having visible error logs.
       text color variable).
       Depends on: 9.1.2.
 
-- [ ] **9.2.2** Build `modules/localmail/views/sidebar_view.py`
+- [x] **9.2.2** Build `modules/localmail/views/sidebar_view.py`
       (`SidebarTreeView`).
       Steps:
       1. `QTreeWidget` (or `QTreeView` + custom model — `QTreeWidget` is
@@ -378,7 +378,7 @@ everything downstream depends on having visible error logs.
       node emits `node_selected` (verify via temporary `print` or log).
       Depends on: 9.2.1, 9.1.2.
 
-- [ ] **9.2.3** Build the main three-pane shell in `main_window.py` (or a
+- [x] **9.2.3** Build the main three-pane shell in `main_window.py` (or a
       new `app_core/views/three_pane_view.py` composed into
       `MainWindow`).
       Steps:

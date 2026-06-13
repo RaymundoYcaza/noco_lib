@@ -5,43 +5,62 @@ if TYPE_CHECKING:
     from app_core.main_window import MainWindow
     from noco_lib.noco_core.client import NocoClient
 
-from modules.localmail.views.inbox_view import InboxView
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSplitter
+from PySide6.QtCore import Qt, QSettings
+from modules.localmail.views.sidebar_view import SidebarTreeView
 from modules.localmail.views.reader_view import ReaderView
 from modules.localmail.views.composer_view import ComposerView
 
 def register(app: MainWindow, client: NocoClient) -> None:
     """
-    Registers the LocalMail module components inside the Tardis main window.
+    Registers the LocalMail module components inside the Tardis main window using a three-pane layout.
     """
     # 1. Obtain user identity from configuration
     user_id = app.config.user_id if getattr(app, "config", None) else "unknown"
     mailboxes = app.config.mailboxes if getattr(app, "config", None) else []
 
-    # 2. Create views and save references on app
-    app.inbox_view = InboxView(app, client, mailboxes)
-    app.sent_view = InboxView(app, client, mailboxes, mode="sent")
-    app.trash_view = InboxView(app, client, mailboxes, mode="trash")
+    # 2. Create the left Sidebar view and save reference
+    app.sidebar_view = SidebarTreeView(app, client, mailboxes)
+
+    # 3. Create the center layout (filter bar placeholder + email list placeholder)
+    center_widget = QWidget()
+    center_layout = QVBoxLayout(center_widget)
+    center_layout.setContentsMargins(0, 0, 0, 0)
+    center_layout.setSpacing(8)
+
+    app.filter_placeholder = QLabel("Filtros (Placeholder)")
+    app.filter_placeholder.setStyleSheet("background-color: #27272a; color: #a1a1aa; padding: 10px; border-radius: 4px;")
+    
+    app.list_placeholder = QLabel("Lista de Correos (Placeholder)")
+    app.list_placeholder.setStyleSheet("background-color: #18181b; color: #e1e1e6; padding: 20px; border: 1px solid #27272a; border-radius: 6px;")
+    
+    center_layout.addWidget(app.filter_placeholder)
+    center_layout.addWidget(app.list_placeholder)
+
+    # 4. Create the right Reader view
     app.reader_view = ReaderView(app, client)
 
-    # 3. Register dock panels in MainWindow using QtAds and save references
-    app.inbox_dock = app.add_dock_panel(app.inbox_view, "LocalMail - Bandeja de entrada", area="left")
-    app.sent_dock = app.add_dock_panel(app.sent_view, "LocalMail - Enviados", area="left")
-    app.trash_dock = app.add_dock_panel(app.trash_view, "LocalMail - Papelera", area="left")
-    app.reader_dock = app.add_dock_panel(app.reader_view, "LocalMail - Lector", area="center")
+    # 5. Create horizontal QSplitter to hold Left, Center, and Right panes
+    splitter = QSplitter(Qt.Horizontal)
+    splitter.addWidget(app.sidebar_view)
+    splitter.addWidget(center_widget)
+    splitter.addWidget(app.reader_view)
+    
+    app.three_pane_splitter = splitter
 
-    # 4. Connect selection signals to the reader view
-    app.inbox_view.email_selected.connect(app.reader_view.show_email)
-    app.sent_view.email_selected.connect(app.reader_view.show_email)
-    app.trash_view.email_selected.connect(app.reader_view.show_email)
+    # Restore splitter sizes/state if saved
+    settings = QSettings("Tardis", "Tardis")
+    state = settings.value("three_pane/splitter_sizes")
+    if state is not None:
+        splitter.restoreState(state)
+    else:
+        # Initial proportions roughly [1, 2, 2]
+        splitter.setSizes([200, 412, 412])
 
-    # 5. Load inbox data initially
-    app.inbox_view.load()
+    # 6. Register three-pane widget as central widget of MainWindow
+    app.setCentralWidget(splitter)
 
-    # 6. Add menu actions for reloading views and drafting a new mail
-    app.add_menu_action("LocalMail", "Bandeja de entrada", lambda: app.inbox_view.load())
-    app.add_menu_action("LocalMail", "Enviados", lambda: app.sent_view.load())
-    app.add_menu_action("LocalMail", "Papelera", lambda: app.trash_view.load())
-
+    # 7. Add menu action for composing a new mail (floating window)
     def open_composer() -> None:
         composer = ComposerView(app, client, mailboxes)
         dock = app.add_floating_window(composer, "Redactar correo")
@@ -50,4 +69,3 @@ def register(app: MainWindow, client: NocoClient) -> None:
         app._composer_windows.append((composer, dock))
 
     app.add_menu_action("LocalMail", "Redactar", open_composer)
-

@@ -190,4 +190,16 @@ class MainWindow(QMainWindow):
         """
         self._extra_sidebar_nodes.append(node)
 
+    def closeEvent(self, event) -> None:
+        try:
+            # Guardar el estado/proporciones del splitter de 3 paneles
+            if hasattr(self, "three_pane_splitter") and self.three_pane_splitter:
+                settings = QSettings("Tardis", "Tardis")
+                settings.setValue("three_pane/splitter_sizes", self.three_pane_splitter.saveState())
+        except Exception as e:
+            import logging
+            logging.getLogger("tardis").exception("Exception in MainWindow.closeEvent while saving splitter state")
+        super().closeEvent(event)
+
+
 
