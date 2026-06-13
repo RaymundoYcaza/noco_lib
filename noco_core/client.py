@@ -201,14 +201,51 @@ class NocoClient:
     # ------------------------------------------------------------------
     def table(self, name_or_id: str, base_id: Optional[str] = None) -> "NocoTable":
         """
-        Devuelve un wrapper NocoTable. Si 'name_or_id' no parece un id de tabla
-        (los ids de NocoDB suelen empezar con 'md_' o similar), se resuelve por nombre.
+        Obtiene una instancia de NocoTable resolviendo name_or_id como ID directo
+        o como nombre de tabla.
+        
+        Estrategia:
+        1. Intentar primero como table_id directo (llamada GET a /meta/tables/{id})
+        2. Si falla, intentar como nombre con find_table_id_by_name()
+        3. Si ambas fallan, devolver NocoTable en estado "no resuelto" (NO lanza excepción)
+        
+        Args:
+            name_or_id: Nombre de la tabla o table_id de NocoDB
+            base_id: ID de la base de datos (opcional, usa el default si None)
+            
+        Returns:
+            NocoTable: Instancia de tabla (puede estar en estado no resuelto)
         """
-        from .table import NocoTable  # import local para evitar ciclos
-        if name_or_id.startswith(("md_", "tbl")):
-            return NocoTable(client=self, table_id=name_or_id, name=name_or_id)
+        from .table import NocoTable
 
-        lookup = self.find_table_id_by_name(name_or_id, base_id=base_id)
-        if not lookup.success:
-            raise ValueError(lookup.errors[0])
-        return NocoTable(client=self, table_id=lookup.data["id"], name=lookup.data.get("title", name_or_id))
+        target_base = base_id or self.base_id
+
+        # 1) Intentar como table_id directo
+        meta = self.get_table_meta(name_or_id)
+        if meta.success:
+            table_name = meta.data.get("title", name_or_id) if meta.data else name_or_id
+            return NocoTable(client=self, table_id=name_or_id, name=table_name)
+
+        # 2) Intentar como nombre
+        lookup = self.find_table_id_by_name(name_or_id, base_id=target_base)
+        if lookup.success:
+            table_name = lookup.data.get("title", name_or_id) if lookup.data else name_or_id
+            table_id = lookup.data.get("id") if lookup.data else None
+            return NocoTable(client=self, table_id=table_id, name=table_name)
+
+        # 3) No resuelto: NO lanzar excepción
+        meta_errors = meta.errors if meta.errors else "Sin detalles"
+        lookup_errors = lookup.errors if lookup.errors else "Sin detalles"
+        
+        combined_error = (
+            f"No se encontró tabla con id o nombre '{name_or_id}'. "
+            f"Detalle por id: {meta_errors}. "
+            f"Detalle por nombre: {lookup_errors}."
+        )
+        
+        return NocoTable(
+            client=self,
+            table_id=None,
+            name=name_or_id,
+            resolution_error=combined_error
+        )

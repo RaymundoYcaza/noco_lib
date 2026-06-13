@@ -22,6 +22,10 @@ import typer
 
 from noco_core import NocoClient
 
+from noco_core.config import load_env
+
+load_env()
+
 app = typer.Typer(help="Capa de abstracción CLI para NocoDB")
 core_app = typer.Typer(help="Operaciones CRUD básicas")
 discover_app = typer.Typer(help="Introspección de esquema y relaciones")
@@ -68,29 +72,45 @@ def _print(result) -> None:
 @core_app.command("read")
 def core_read(table: str, where: str = None, limit: int = None):
     client = get_client()
-    _print(client.table(table).read(where=where, limit=limit))
+    table_obj = client.table(table)
+    if table_obj.is_unresolved():
+        _print(table_obj.meta())
+        raise typer.Exit(1)
+    _print(table_obj.read(where=where, limit=limit))
 
 
 @core_app.command("create")
 def core_create(table: str, json_data: str):
     """json_data: JSON de un dict o lista de dicts."""
     client = get_client()
-    _print(client.table(table).create(json.loads(json_data)))
+    table_obj = client.table(table)
+    if table_obj.is_unresolved():
+        _print(table_obj.meta())
+        raise typer.Exit(1)
+    _print(table_obj.create(json.loads(json_data)))
 
 
 @core_app.command("update")
 def core_update(table: str, json_data: str):
     client = get_client()
-    _print(client.table(table).update(json.loads(json_data)))
+    table_obj = client.table(table)
+    if table_obj.is_unresolved():
+        _print(table_obj.meta())
+        raise typer.Exit(1)
+    _print(table_obj.update(json.loads(json_data)))
 
 
 @core_app.command("delete")
 def core_delete(table: str, ids: str):
     """ids: '1,2,3' o un solo id."""
     client = get_client()
+    table_obj = client.table(table)
+    if table_obj.is_unresolved():
+        _print(table_obj.meta())
+        raise typer.Exit(1)
     id_list = [int(i) for i in ids.split(",")]
     target = id_list[0] if len(id_list) == 1 else id_list
-    _print(client.table(table).delete(target))
+    _print(table_obj.delete(target))
 
 
 # ----------------------------------------------------------------------
@@ -99,7 +119,11 @@ def core_delete(table: str, ids: str):
 @discover_app.command("table")
 def discover_table_cmd(table: str, depth: int = 1):
     client = get_client()
-    _print(client.table(table).discover(depth=depth))
+    table_obj = client.table(table)
+    if table_obj.is_unresolved():
+        _print(table_obj.meta())
+        raise typer.Exit(1)
+    _print(table_obj.discover(depth=depth))
 
 
 @discover_app.command("overview")
@@ -121,24 +145,33 @@ def ext_list_tables(path: str = None):
 def ext_rename_field(table: str, old_name: str, new_name: str):
     from noco_ext import rename_field
     client = get_client()
-    table_id = client.table(table).table_id
-    _print(rename_field(client, table_id, old_name, new_name))
+    table_obj = client.table(table)
+    if table_obj.is_unresolved():
+        _print(table_obj.meta())
+        raise typer.Exit(1)
+    _print(rename_field(client, table_obj.table_id, old_name, new_name))
 
 
 @ext_app.command("rename-select-option")
 def ext_rename_select_option(table: str, field: str, old_option: str, new_option: str):
     from noco_ext import rename_select_option
     client = get_client()
-    table_id = client.table(table).table_id
-    _print(rename_select_option(client, table_id, field, old_option, new_option))
+    table_obj = client.table(table)
+    if table_obj.is_unresolved():
+        _print(table_obj.meta())
+        raise typer.Exit(1)
+    _print(rename_select_option(client, table_obj.table_id, field, old_option, new_option))
 
 
 @ext_app.command("add-select-option")
 def ext_add_select_option(table: str, field: str, option: str, color: str = None):
     from noco_ext import add_select_option
     client = get_client()
-    table_id = client.table(table).table_id
-    _print(add_select_option(client, table_id, field, option, color=color))
+    table_obj = client.table(table)
+    if table_obj.is_unresolved():
+        _print(table_obj.meta())
+        raise typer.Exit(1)
+    _print(add_select_option(client, table_obj.table_id, field, option, color=color))
 
 
 # ----------------------------------------------------------------------
