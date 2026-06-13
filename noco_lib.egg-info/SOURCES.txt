@@ -6,6 +6,7 @@ noco_cli/menu/__init__.py
 noco_cli/menu/interactive.py
 noco_core/__init__.py
 noco_core/client.py
+noco_core/config.py
 noco_core/result.py
 noco_core/table.py
 noco_discovery/__init__.py
@@ -20,3 +21,4 @@ noco_lib.egg-info/requires.txt
 noco_lib.egg-info/top_level.txt
 noco_modules/__init__.py
 noco_modules/_template_module.py
+tests/test_table_resolution.py
