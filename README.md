@@ -19,6 +19,16 @@ export NOCO_TOKEN="xxxxx"
 export NOCO_BASE_ID="pxxxxxxxx"   # opcional, requerido para listar tablas por nombre
 ```
 
+### Configuración con variables de entorno
+
+Puedes configurar las credenciales de NocoDB de tres formas (en orden de prioridad):
+
+#### 1. Variables de entorno del shell (mayor prioridad)
+```bash
+export NOCO_BASE_URL="https://tu-nocodb.com"
+export NOCO_TOKEN="tu_token"
+export NOCO_BASE_ID="pxxxxxxxx"
+
 ## Uso en 3 líneas
 
 ```python

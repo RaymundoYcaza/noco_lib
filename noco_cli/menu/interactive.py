@@ -15,6 +15,9 @@ import questionary
 
 from noco_core import NocoClient
 
+from noco_core.config import load_env
+
+
 
 def _get_client() -> NocoClient:
     base_url = os.environ.get("NOCO_BASE_URL") or questionary.text("Base URL:").ask()
@@ -28,6 +31,9 @@ def _show(result):
 
 
 def main():
+
+    load_env()
+
     client = _get_client()
 
     while True:
