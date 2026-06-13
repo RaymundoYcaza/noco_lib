@@ -22,6 +22,10 @@ import typer
 
 from noco_core import NocoClient
 
+from noco_core.config import load_env
+
+load_env()
+
 app = typer.Typer(help="Capa de abstracción CLI para NocoDB")
 core_app = typer.Typer(help="Operaciones CRUD básicas")
 discover_app = typer.Typer(help="Introspección de esquema y relaciones")
