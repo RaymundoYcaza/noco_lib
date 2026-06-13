@@ -1,0 +1,2 @@
+[console_scripts]
+noco = noco_cli.main:app

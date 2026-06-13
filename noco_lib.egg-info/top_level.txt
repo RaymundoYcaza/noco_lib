@@ -1,0 +1,5 @@
+noco_cli
+noco_core
+noco_discovery
+noco_ext
+noco_modules
