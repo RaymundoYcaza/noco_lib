@@ -20,13 +20,23 @@ if TYPE_CHECKING:
 
 
 class NocoTable:
-    def __init__(self, client: "NocoClient", table_id: str, name: str):
-        self.client = client
-        self.table_id = table_id
-        self.name = name
+    def __init__(
+        self,
+        client: "NocoClient",
+        table_id: str,
+        name: Optional[str] = None,
+        resolution_error: Optional[str] = None,
+    ):
+        self._client = client
+        self._table_id = table_id
+        self._name = name or table_id
+        self._resolution_error = resolution_error
 
     def __repr__(self) -> str:
-        return f"<NocoTable name={self.name!r} id={self.table_id!r}>"
+        if self.is_unresolved():
+            error_msg = self._resolution_error or "Error desconocido"
+            return f"<NocoTable name='{self._name}' UNRESOLVED: {error_msg}>"
+        return f"<NocoTable name='{self._name}' id='{self._table_id}'>"
 
     # ---- lectura ----
     def read(self, where: Optional[str] = None, limit: Optional[int] = None,
@@ -58,3 +68,7 @@ class NocoTable:
     def discover(self, depth: int = 1) -> NocoResult:
         from noco_discovery.discovery import discover_table
         return discover_table(self.client, self.table_id, depth=depth)
+
+    def is_unresolved(self) -> bool:
+        """Verifica si la tabla está en estado no resuelto (table_id es None)"""
+        return self._table_id is None
