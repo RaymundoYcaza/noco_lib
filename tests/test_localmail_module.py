@@ -57,72 +57,104 @@ def test_register_module(mock_app, mock_client):
         register(mock_app, mock_client)
 
         # 1. Check constructors were called with correct args
-        mock_inbox_cls.assert_called_once_with(mock_app, mock_client, ["test_user"])
+        assert mock_inbox_cls.call_count == 3
+        mock_inbox_cls.assert_any_call(mock_app, mock_client, ["test_user"])
+        mock_inbox_cls.assert_any_call(mock_app, mock_client, ["test_user"], mode="sent")
+        mock_inbox_cls.assert_any_call(mock_app, mock_client, ["test_user"], mode="trash")
         mock_reader_cls.assert_called_once_with(mock_app, mock_client)
 
         # 2. Check panels were added to correct dock areas
-        # Get actual instances created
-        inbox_instance = mock_inbox_cls.call_args[0][0]  # wraps allows us to get the created view, wait, call_args doesn't give returns
-        # Let's inspect mock_app.add_dock_panel calls instead
-        assert mock_app.add_dock_panel.call_count == 2
+        assert mock_app.add_dock_panel.call_count == 4
         
-        # First panel call
-        args_1 = mock_app.add_dock_panel.call_args_list[0][0]
-        kwargs_1 = mock_app.add_dock_panel.call_args_list[0][1]
-        assert isinstance(args_1[0], InboxView)
-        assert args_1[1] == "LocalMail - Bandeja de entrada"
-        assert kwargs_1.get("area") == "left"
+        # We can extract the panels added
+        panel_calls = mock_app.add_dock_panel.call_args_list
+        # Call 1: inbox
+        assert isinstance(panel_calls[0][0][0], InboxView)
+        assert panel_calls[0][0][0].mode == "inbox"
+        assert panel_calls[0][0][1] == "LocalMail - Bandeja de entrada"
+        assert panel_calls[0][1].get("area") == "left"
 
-        # Second panel call
-        args_2 = mock_app.add_dock_panel.call_args_list[1][0]
-        kwargs_2 = mock_app.add_dock_panel.call_args_list[1][1]
-        assert isinstance(args_2[0], ReaderView)
-        assert args_2[1] == "LocalMail - Lector"
-        assert kwargs_2.get("area") == "center"
+        # Call 2: sent_view
+        assert isinstance(panel_calls[1][0][0], InboxView)
+        assert panel_calls[1][0][0].mode == "sent"
+        assert panel_calls[1][0][1] == "LocalMail - Enviados"
+        assert panel_calls[1][1].get("area") == "left"
 
-        # 3. Check signal connection between inbox and reader
-        # InboxView instance should be connected to ReaderView's show_email slot
-        inbox_created = args_1[0]
-        reader_created = args_2[0]
-        # In mock wraps, we can check if signals were emitted or connected
-        # Let's verify signal exists and we can emit it to call reader's show_email
+        # Call 3: trash_view
+        assert isinstance(panel_calls[2][0][0], InboxView)
+        assert panel_calls[2][0][0].mode == "trash"
+        assert panel_calls[2][0][1] == "LocalMail - Papelera"
+        assert panel_calls[2][1].get("area") == "left"
+
+        # Call 4: reader
+        assert isinstance(panel_calls[3][0][0], ReaderView)
+        assert panel_calls[3][0][1] == "LocalMail - Lector"
+        assert panel_calls[3][1].get("area") == "center"
+
+        # 3. Check signal connection between views and reader
+        inbox_created = panel_calls[0][0][0]
+        sent_created = panel_calls[1][0][0]
+        trash_created = panel_calls[2][0][0]
+        reader_created = panel_calls[3][0][0]
+        
         with patch.object(reader_created, "show_email") as mock_show:
             inbox_created.email_selected.emit(12345)
-            mock_show.assert_called_once_with(12345)
+            mock_show.assert_any_call(12345)
+            
+            sent_created.email_selected.emit(67890)
+            mock_show.assert_any_call(67890)
+            
+            trash_created.email_selected.emit(11111)
+            mock_show.assert_any_call(11111)
 
         # 4. Check initial inbox load was called
-        # mock_inbox_run_async tracks load
         assert mock_inbox_run_async.call_count == 1
 
         # 5. Check menu actions were registered
-        assert mock_app.add_menu_action.call_count == 2
+        assert mock_app.add_menu_action.call_count == 4
         
+        menu_calls = mock_app.add_menu_action.call_args_list
         # Action 1: "Bandeja de entrada"
-        menu_args_1 = mock_app.add_menu_action.call_args_list[0][0]
-        assert menu_args_1[0] == "LocalMail"
-        assert menu_args_1[1] == "Bandeja de entrada"
+        assert menu_calls[0][0][0] == "LocalMail"
+        assert menu_calls[0][0][1] == "Bandeja de entrada"
+        callback_1 = menu_calls[0][0][2]
         
         # Triggering Action 1 callback should load the inbox again
-        callback_1 = menu_args_1[2]
         assert mock_inbox_run_async.call_count == 1
         callback_1()
         assert mock_inbox_run_async.call_count == 2
 
-        # Action 2: "Redactar"
-        menu_args_2 = mock_app.add_menu_action.call_args_list[1][0]
-        assert menu_args_2[0] == "LocalMail"
-        assert menu_args_2[1] == "Redactar"
+        # Action 2: "Enviados"
+        assert menu_calls[1][0][0] == "LocalMail"
+        assert menu_calls[1][0][1] == "Enviados"
+        callback_2 = menu_calls[1][0][2]
         
-        # Triggering Action 2 callback should add floating ComposerView window
-        callback_2 = menu_args_2[2]
-        assert mock_app.add_floating_window.call_count == 0
-        
-        with patch("modules.localmail.module.ComposerView", wraps=ComposerView) as mock_composer_cls:
+        # Triggering Action 2 callback should load sent view (calls list_sent)
+        with patch("modules.localmail.views.inbox_view.run_async") as mock_sent_run_async:
             callback_2()
+            assert mock_sent_run_async.call_count == 1
+
+        # Action 3: "Papelera"
+        assert menu_calls[2][0][0] == "LocalMail"
+        assert menu_calls[2][0][1] == "Papelera"
+        callback_3 = menu_calls[2][0][2]
+        
+        # Triggering Action 3 callback should load trash view (calls list_trash)
+        with patch("modules.localmail.views.inbox_view.run_async") as mock_trash_run_async:
+            callback_3()
+            assert mock_trash_run_async.call_count == 1
+
+        # Action 4: "Redactar"
+        assert menu_calls[3][0][0] == "LocalMail"
+        assert menu_calls[3][0][1] == "Redactar"
+        callback_4 = menu_calls[3][0][2]
+        
+        assert mock_app.add_floating_window.call_count == 0
+        with patch("modules.localmail.module.ComposerView", wraps=ComposerView) as mock_composer_cls:
+            callback_4()
             assert mock_app.add_floating_window.call_count == 1
             mock_composer_cls.assert_called_once_with(mock_app, mock_client, ["test_user"])
             
-            # Check floating window args
             float_args = mock_app.add_floating_window.call_args[0]
             assert isinstance(float_args[0], ComposerView)
             assert float_args[1] == "Redactar correo"

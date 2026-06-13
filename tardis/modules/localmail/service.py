@@ -70,6 +70,13 @@ def list_sent(client: NocoClient, mailboxes: list[str], limit: int = 50) -> Noco
         )
     return result
 
+def list_trash(client: NocoClient, mailboxes: list[str], limit: int = 50) -> NocoResult:
+    """
+    where = (mailbox_owner,in,<mailboxes>)~and(folder,eq,trash)
+    sort = "-CreatedAt" (más recientes primero)
+    """
+    return list_inbox(client, mailboxes, folder="trash", limit=limit)
+
 def get_email(client: NocoClient, email_id: int) -> NocoResult:
     """read(where=f"(Id,eq,{email_id})"), data = registro único o None"""
     if not isinstance(email_id, int) or email_id <= 0:
@@ -200,11 +207,11 @@ def send_email(client: NocoClient, from_user: str, to_users: list[str], subject:
             meta=meta
         )
 
-def notify(client: NocoClient, to_user: str, subject: str, body: str, module_origin: str) -> NocoResult:
+def notify(client: NocoClient, to_users: list[str], subject: str, body: str, module_origin: str) -> NocoResult:
     """
     Atajo para otros módulos. Igual que send_email pero:
     from_user = f"sistema:{module_origin}"
     priority = "Media"
     """
     from_user = f"sistema:{module_origin}"
-    return send_email(client, from_user=from_user, to_user=to_user, subject=subject, body=body, priority="Media")
+    return send_email(client, from_user=from_user, to_users=to_users, subject=subject, body=body, priority="Media")

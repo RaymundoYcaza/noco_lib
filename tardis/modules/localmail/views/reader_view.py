@@ -1,4 +1,5 @@
 import sys
+import logging
 from pathlib import Path
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTextBrowser, QLabel
 from PySide6.QtCore import Qt
@@ -55,60 +56,69 @@ class ReaderView(QWidget):
         """
         Loads and renders the email corresponding to the given email_id asynchronously.
         """
-        if not isinstance(email_id, int) or email_id <= 0:
-            self.browser.setPlainText("ID de correo inválido.")
-            return
+        try:
+            if not isinstance(email_id, int) or email_id <= 0:
+                self.browser.setPlainText("ID de correo inválido.")
+                return
 
-        self.browser.setPlainText("Cargando correo...")
-        run_async(
-            service.get_email,
-            self.client,
-            email_id,
-            on_success=self._render,
-            on_error=self._on_error
-        )
+            self.browser.setPlainText("Cargando correo...")
+            run_async(
+                service.get_email,
+                self.client,
+                email_id,
+                on_success=self._render,
+                on_error=self._on_error
+            )
+        except Exception as e:
+            logging.getLogger("tardis").exception("Exception in ReaderView.show_email")
 
     def _render(self, result) -> None:
-        if not result.success:
-            err_msg = result.errors[0] if result.errors else "Error desconocido al cargar el correo."
-            self.browser.setPlainText(f"Error: {err_msg}")
-            if hasattr(self.main_window, "show_notification"):
-                self.main_window.show_notification(err_msg, "error")
-            return
+        try:
+            if not result.success:
+                err_msg = result.errors[0] if result.errors else "Error desconocido al cargar el correo."
+                self.browser.setPlainText(f"Error: {err_msg}")
+                if hasattr(self.main_window, "show_notification"):
+                    self.main_window.show_notification(err_msg, "error")
+                return
 
-        email = result.data
-        if not email:
-            self.browser.setPlainText("Correo no encontrado.")
-            return
+            email = result.data
+            if not email:
+                self.browser.setPlainText("Correo no encontrado.")
+                return
 
-        # Extract values safely
-        from_user = email.get("from", "")
-        to_user = email.get("to", "")
-        cc = email.get("cc", "")
-        created_at = email.get("CreatedAt", "")
-        title = email.get("title", "")
-        body = email.get("body", "")
+            # Extract values safely
+            from_user = email.get("from", "")
+            to_user = email.get("to", "")
+            cc = email.get("cc", "")
+            created_at = email.get("CreatedAt", "")
+            title = email.get("title", "")
+            body = email.get("body", "")
 
-        # Format details
-        lines = [
-            f"De:      {from_user}",
-            f"Para:    {to_user}",
-        ]
-        if cc:
-            lines.append(f"CC:      {cc}")
-        lines.extend([
-            f"Fecha:   {created_at}",
-            f"Asunto:  {title}",
-            "-" * 60,
-            "",
-            body
-        ])
+            # Format details
+            lines = [
+                f"De:      {from_user}",
+                f"Para:    {to_user}",
+            ]
+            if cc:
+                lines.append(f"CC:      {cc}")
+            lines.extend([
+                f"Fecha:   {created_at}",
+                f"Asunto:  {title}",
+                "-" * 60,
+                "",
+                body
+            ])
 
-        rendered_text = "\n".join(lines)
-        self.browser.setPlainText(rendered_text)
+            rendered_text = "\n".join(lines)
+            self.browser.setPlainText(rendered_text)
+        except Exception as e:
+            logging.getLogger("tardis").exception("Exception in ReaderView._render")
 
     def _on_error(self, exc: Exception) -> None:
-        err_msg = f"Error inesperado: {exc}"
-        self.browser.setPlainText(err_msg)
-        if hasattr(self.main_window, "show_notification"):
-            self.main_window.show_notification(err_msg, "error")
+        try:
+            err_msg = f"Error inesperado: {exc}"
+            self.browser.setPlainText(err_msg)
+            if hasattr(self.main_window, "show_notification"):
+                self.main_window.show_notification(err_msg, "error")
+        except Exception as e:
+            logging.getLogger("tardis").exception("Exception in ReaderView._on_error")

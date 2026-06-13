@@ -208,3 +208,34 @@ class TestInboxView:
                 mock_arch.assert_called_once_with(mock_client, 107)
                 assert mock_load.call_count == 2
 
+    def test_init_ui_sent(self, mock_run, mock_main_window, mock_client):
+        """Check if UI widgets are initialized correctly for sent mode."""
+        view = InboxView(mock_main_window, mock_client, ["user1"], mode="sent")
+        assert view.title_label.text() == "Enviados (user1)"
+        assert [view.table.horizontalHeaderItem(i).text() for i in range(4)] == ["Prioridad", "Para", "Asunto", "Fecha"]
+
+    def test_load_sent_success(self, mock_run, mock_main_window, mock_client):
+        """Check loading sent emails and calling list_sent."""
+        emails = [{"Id": 201, "priority": "Media", "from": "user1", "to": "receiver@test.com", "title": "Sent email", "CreatedAt": "2026-06-13T12:00:00Z", "read": True}]
+        result = NocoResult.ok("read", data=emails)
+        
+        with patch("modules.localmail.service.list_sent", return_value=result) as mock_list:
+            view = InboxView(mock_main_window, mock_client, ["user1"], mode="sent")
+            view.load()
+            
+            mock_list.assert_called_once_with(mock_client, ["user1"])
+            assert view.table.rowCount() == 1
+            assert view.table.item(0, 1).text() == "receiver@test.com"
+
+    def test_load_trash_success(self, mock_run, mock_main_window, mock_client):
+        """Check loading trash emails and calling list_trash."""
+        emails = [{"Id": 301, "priority": "Baja", "from": "sender@test.com", "title": "Deleted email", "CreatedAt": "2026-06-13T12:00:00Z", "read": True}]
+        result = NocoResult.ok("read", data=emails)
+        
+        with patch("modules.localmail.service.list_trash", return_value=result) as mock_list:
+            view = InboxView(mock_main_window, mock_client, ["user1"], mode="trash")
+            view.load()
+            
+            mock_list.assert_called_once_with(mock_client, ["user1"])
+            assert view.table.rowCount() == 1
+            assert view.table.item(0, 1).text() == "sender@test.com"

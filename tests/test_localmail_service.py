@@ -15,7 +15,7 @@ if str(noco_lib_dir) not in sys.path:
 
 from noco_lib.noco_core.client import NocoClient
 from noco_lib.noco_core.result import NocoResult
-from modules.localmail.service import list_sent
+from modules.localmail.service import list_sent, list_trash
 
 def test_list_sent_empty_mailboxes():
     mock_client = MagicMock(spec=NocoClient)
@@ -77,3 +77,40 @@ def test_list_sent_success_and_deduplication():
     assert len(result.data) == 3
     assert result.affected_count == 3
     assert [r["Id"] for r in result.data] == [1, 3, 4]
+
+
+def test_list_trash_empty_mailboxes():
+    mock_client = MagicMock(spec=NocoClient)
+    result = list_trash(mock_client, [])
+    assert not result.success
+    assert "No hay casillas" in result.errors[0]
+
+
+def test_list_trash_success():
+    mock_client = MagicMock(spec=NocoClient)
+    mock_table = MagicMock()
+    mock_client.table.return_value = mock_table
+    
+    records = [
+        {
+            "Id": 10,
+            "mailbox_owner": "dev@bisstox.com",
+            "title": "Deleted email",
+            "folder": "trash",
+            "CreatedAt": "2026-06-13T10:00:00Z"
+        }
+    ]
+    mock_table.read.return_value = NocoResult.ok("read", data=records)
+    
+    mailboxes = ["dev@bisstox.com"]
+    result = list_trash(mock_client, mailboxes, limit=10)
+    
+    assert result.success
+    mock_table.read.assert_called_once_with(
+        where="(mailbox_owner,in,dev@bisstox.com)~and(folder,eq,trash)",
+        limit=10,
+        sort="-CreatedAt"
+    )
+    assert len(result.data) == 1
+    assert result.affected_count == 1
+    assert result.data[0]["Id"] == 10

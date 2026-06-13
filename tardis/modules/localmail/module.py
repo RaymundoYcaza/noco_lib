@@ -17,25 +17,37 @@ def register(app: MainWindow, client: NocoClient) -> None:
     user_id = app.config.user_id if getattr(app, "config", None) else "unknown"
     mailboxes = app.config.mailboxes if getattr(app, "config", None) else []
 
-    # 2. Create views
-    inbox = InboxView(app, client, mailboxes)
-    reader = ReaderView(app, client)
+    # 2. Create views and save references on app
+    app.inbox_view = InboxView(app, client, mailboxes)
+    app.sent_view = InboxView(app, client, mailboxes, mode="sent")
+    app.trash_view = InboxView(app, client, mailboxes, mode="trash")
+    app.reader_view = ReaderView(app, client)
 
-    # 3. Register dock panels in MainWindow using QtAds
-    app.add_dock_panel(inbox, "LocalMail - Bandeja de entrada", area="left")
-    app.add_dock_panel(reader, "LocalMail - Lector", area="center")
+    # 3. Register dock panels in MainWindow using QtAds and save references
+    app.inbox_dock = app.add_dock_panel(app.inbox_view, "LocalMail - Bandeja de entrada", area="left")
+    app.sent_dock = app.add_dock_panel(app.sent_view, "LocalMail - Enviados", area="left")
+    app.trash_dock = app.add_dock_panel(app.trash_view, "LocalMail - Papelera", area="left")
+    app.reader_dock = app.add_dock_panel(app.reader_view, "LocalMail - Lector", area="center")
 
-    # 4. Connect inbox selection signal to the reader view
-    inbox.email_selected.connect(reader.show_email)
+    # 4. Connect selection signals to the reader view
+    app.inbox_view.email_selected.connect(app.reader_view.show_email)
+    app.sent_view.email_selected.connect(app.reader_view.show_email)
+    app.trash_view.email_selected.connect(app.reader_view.show_email)
 
     # 5. Load inbox data initially
-    inbox.load()
+    app.inbox_view.load()
 
-    # 6. Add menu actions for reloading inbox and drafting a new mail
-    app.add_menu_action("LocalMail", "Bandeja de entrada", lambda: inbox.load())
+    # 6. Add menu actions for reloading views and drafting a new mail
+    app.add_menu_action("LocalMail", "Bandeja de entrada", lambda: app.inbox_view.load())
+    app.add_menu_action("LocalMail", "Enviados", lambda: app.sent_view.load())
+    app.add_menu_action("LocalMail", "Papelera", lambda: app.trash_view.load())
 
     def open_composer() -> None:
         composer = ComposerView(app, client, mailboxes)
-        app.add_floating_window(composer, "Redactar correo")
+        dock = app.add_floating_window(composer, "Redactar correo")
+        if not hasattr(app, "_composer_windows"):
+            app._composer_windows = []
+        app._composer_windows.append((composer, dock))
 
     app.add_menu_action("LocalMail", "Redactar", open_composer)
+

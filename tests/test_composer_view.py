@@ -156,3 +156,43 @@ class TestComposerView:
             assert "Fallo crítico" in view.error_label.text()
             assert view.btn_send.isEnabled()
             assert view.btn_send.text() == "Enviar"
+
+    def test_close_event_empty(self, mock_run, mock_main_window, mock_client):
+        """If the composer fields are empty, closing it should not show a message box."""
+        view = ComposerView(mock_main_window, mock_client, ["sender_user"])
+        view.to_input.setText("   ")
+        view.subject_input.setText("")
+        view.body_input.setText("\n")
+        
+        from PySide6.QtGui import QCloseEvent
+        event = QCloseEvent()
+        with patch("PySide6.QtWidgets.QMessageBox.question") as mock_question:
+            view.closeEvent(event)
+            mock_question.assert_not_called()
+            assert event.isAccepted()
+
+    def test_close_event_non_empty_discard_no(self, mock_run, mock_main_window, mock_client):
+        """If fields have content and user chooses not to discard, ignore the close event."""
+        view = ComposerView(mock_main_window, mock_client, ["sender_user"])
+        view.subject_input.setText("Some subject")
+        
+        from PySide6.QtWidgets import QMessageBox
+        from PySide6.QtGui import QCloseEvent
+        event = QCloseEvent()
+        with patch("PySide6.QtWidgets.QMessageBox.question", return_value=QMessageBox.No) as mock_question:
+            view.closeEvent(event)
+            mock_question.assert_called_once()
+            assert not event.isAccepted()
+
+    def test_close_event_non_empty_discard_yes(self, mock_run, mock_main_window, mock_client):
+        """If fields have content and user chooses to discard, accept the close event."""
+        view = ComposerView(mock_main_window, mock_client, ["sender_user"])
+        view.body_input.setText("Some body")
+        
+        from PySide6.QtWidgets import QMessageBox
+        from PySide6.QtGui import QCloseEvent
+        event = QCloseEvent()
+        with patch("PySide6.QtWidgets.QMessageBox.question", return_value=QMessageBox.Yes) as mock_question:
+            view.closeEvent(event)
+            mock_question.assert_called_once()
+            assert event.isAccepted()

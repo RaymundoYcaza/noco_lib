@@ -1,4 +1,5 @@
-from PySide6.QtCore import QObject, Signal, QRunnable, QThreadPool
+from PySide6.QtCore import QObject, Signal, QRunnable, QThreadPool, Slot
+import logging
 from typing import Callable, Any
 
 class WorkerSignals(QObject):
@@ -24,7 +25,34 @@ class Worker(QRunnable):
             result = self.fn(*self.args, **self.kwargs)
             self.signals.success.emit(result)
         except Exception as e:
+            logging.getLogger("tardis").exception("Exception in run_async task: %s", self.fn.__name__ if hasattr(self.fn, "__name__") else str(self.fn))
             self.signals.error.emit(e)
+
+class CallbackBridge(QObject):
+    """
+    Puente que recibe las señales del hilo trabajador y ejecuta los callbacks en el hilo de UI.
+    Al ser un QObject creado en el hilo principal, PySide6 usará QueuedConnection de forma automática.
+    """
+    def __init__(self, on_success: Callable[[Any], None] | None, on_error: Callable[[Exception], None] | None, parent: QObject | None = None):
+        super().__init__(parent)
+        self.on_success = on_success
+        self.on_error = on_error
+
+    @Slot(object)
+    def handle_success(self, result: Any) -> None:
+        if self.on_success is not None:
+            try:
+                self.on_success(result)
+            except Exception as e:
+                logging.getLogger("tardis").exception("Exception in run_async on_success callback")
+
+    @Slot(Exception)
+    def handle_error(self, exc: Exception) -> None:
+        if self.on_error is not None:
+            try:
+                self.on_error(exc)
+            except Exception as e:
+                logging.getLogger("tardis").exception("Exception in run_async on_error callback")
 
 def run_async(fn: Callable, *args,
               on_success: Callable[[Any], None] | None = None,
@@ -37,10 +65,11 @@ def run_async(fn: Callable, *args,
     """
     worker = Worker(fn, *args, **kwargs)
     
-    if on_success is not None:
-        worker.signals.success.connect(on_success)
-        
-    if on_error is not None:
-        worker.signals.error.connect(on_error)
+    bridge = CallbackBridge(on_success, on_error)
+    worker.bridge = bridge  # Mantener referencia para evitar la recolección de basura
+    
+    worker.signals.success.connect(bridge.handle_success)
+    worker.signals.error.connect(bridge.handle_error)
         
     QThreadPool.globalInstance().start(worker)
+

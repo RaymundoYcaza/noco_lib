@@ -19,6 +19,7 @@ from app_core.main_window import MainWindow
 
 @dataclass
 class ModuleInfo:
+    name: str
     loaded: bool
     error: str | None = None
 
@@ -27,7 +28,7 @@ def discover_and_register(main_window: MainWindow, client: NocoClient) -> dict[s
     Itera carpetas en modules/ (excluye prefijo '_'), importa module.py,
     llama register(app=main_window, client=client) si existe.
     Captura excepciones por módulo; un módulo roto no detiene Tardis.
-    Devuelve {nombre_modulo: ModuleInfo(loaded: bool, error: str | None)}.
+    Devuelve {nombre_modulo: ModuleInfo(name: str, loaded: bool, error: str | None)}.
     """
     modules_dir = tardis_dir / "modules"
     results = {}
@@ -50,17 +51,17 @@ def discover_and_register(main_window: MainWindow, client: NocoClient) -> dict[s
             if hasattr(mod, "register"):
                 mod.register(main_window, client)
                 print(f"[Tardis] Módulo '{module_name}' cargado")
-                results[module_name] = ModuleInfo(loaded=True)
+                results[module_name] = ModuleInfo(name=module_name, loaded=True)
             else:
                 err_msg = "Función 'register' no encontrada en module.py"
                 print(f"[Tardis] ERROR cargando '{module_name}': {err_msg}")
-                results[module_name] = ModuleInfo(loaded=False, error=err_msg)
+                results[module_name] = ModuleInfo(name=module_name, loaded=False, error=err_msg)
                 
         except Exception as exc:
             import traceback
             traceback.print_exc()
             err_msg = str(exc)
             print(f"[Tardis] ERROR cargando '{module_name}': {err_msg}")
-            results[module_name] = ModuleInfo(loaded=False, error=err_msg)
+            results[module_name] = ModuleInfo(name=module_name, loaded=False, error=err_msg)
 
     return results

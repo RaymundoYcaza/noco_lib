@@ -1,8 +1,9 @@
 import sys
+import logging
 from pathlib import Path
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
-    QTextEdit, QComboBox, QPushButton
+    QTextEdit, QComboBox, QPushButton, QMessageBox
 )
 from PySide6.QtCore import Qt
 
@@ -172,87 +173,118 @@ class ComposerView(QWidget):
             self.error_label.setVisible(True)
 
     def _on_send_clicked(self) -> None:
-        from_val = self.from_combo.currentText().strip()
-        to_val = self.to_input.text().strip()
-        cc_val = self.cc_input.text().strip()
-        subject_val = self.subject_input.text().strip()
-        body_val = self.body_input.toPlainText()
-        priority_val = self.priority_combo.currentText()
+        try:
+            from_val = self.from_combo.currentText().strip()
+            to_val = self.to_input.text().strip()
+            cc_val = self.cc_input.text().strip()
+            subject_val = self.subject_input.text().strip()
+            body_val = self.body_input.toPlainText()
+            priority_val = self.priority_combo.currentText()
 
-        # Parse comma/semicolon separated email addresses
-        to_users = [s.strip() for s in to_val.split(";") if s.strip()]
-        cc_users = [s.strip() for s in cc_val.split(";") if s.strip()] if cc_val else None
+            # Parse comma/semicolon separated email addresses
+            to_users = [s.strip() for s in to_val.split(";") if s.strip()]
+            cc_users = [s.strip() for s in cc_val.split(";") if s.strip()] if cc_val else None
 
-        # UI Validation
-        if not from_val:
-            self.error_label.setText("La casilla remitente (Desde) no puede estar vacía.")
-            self.error_label.setVisible(True)
-            return
+            # UI Validation
+            if not from_val:
+                self.error_label.setText("La casilla remitente (Desde) no puede estar vacía.")
+                self.error_label.setVisible(True)
+                return
 
-        if not to_users:
-            self.error_label.setText("El destinatario (Para) no puede estar vacío.")
-            self.error_label.setVisible(True)
-            return
+            if not to_users:
+                self.error_label.setText("El destinatario (Para) no puede estar vacío.")
+                self.error_label.setVisible(True)
+                return
 
-        if not subject_val:
-            self.error_label.setText("El asunto no puede estar vacío.")
-            self.error_label.setVisible(True)
-            return
+            if not subject_val:
+                self.error_label.setText("El asunto no puede estar vacío.")
+                self.error_label.setVisible(True)
+                return
 
-        self.error_label.setVisible(False)
-        self.btn_send.setEnabled(False)
-        self.btn_send.setText("Enviando...")
+            self.error_label.setVisible(False)
+            self.btn_send.setEnabled(False)
+            self.btn_send.setText("Enviando...")
 
-        run_async(
-            service.send_email,
-            self.client,
-            from_user=from_val,
-            to_users=to_users,
-            subject=subject_val,
-            body=body_val,
-            cc_users=cc_users,
-            priority=priority_val,
-            on_success=self._on_sent,
-            on_error=self._on_error
-        )
+            run_async(
+                service.send_email,
+                self.client,
+                from_user=from_val,
+                to_users=to_users,
+                subject=subject_val,
+                body=body_val,
+                cc_users=cc_users,
+                priority=priority_val,
+                on_success=self._on_sent,
+                on_error=self._on_error
+            )
+        except Exception as e:
+            logging.getLogger("tardis").exception("Exception in ComposerView._on_send_clicked")
 
     def _on_sent(self, result) -> None:
-        self.btn_send.setEnabled(True)
-        self.btn_send.setText("Enviar")
+        try:
+            self.btn_send.setEnabled(True)
+            self.btn_send.setText("Enviar")
 
-        if not result.success:
-            err_msg = ", ".join(result.errors) if result.errors else "Error desconocido al enviar el correo."
-            self.error_label.setText(err_msg)
-            self.error_label.setVisible(True)
-            return
+            if not result.success:
+                err_msg = ", ".join(result.errors) if result.errors else "Error desconocido al enviar el correo."
+                self.error_label.setText(err_msg)
+                self.error_label.setVisible(True)
+                return
 
-        self.error_label.setVisible(False)
-        if hasattr(self.main_window, "show_notification"):
-            self.main_window.show_notification("Correo enviado", "info")
+            self.error_label.setVisible(False)
+            if hasattr(self.main_window, "show_notification"):
+                self.main_window.show_notification("Correo enviado", "info")
 
-        # Clear the form
-        self.to_input.clear()
-        self.cc_input.clear()
-        self.subject_input.clear()
-        self.body_input.clear()
-        self.priority_combo.setCurrentText("Media")
+            # Clear the form
+            self.to_input.clear()
+            self.cc_input.clear()
+            self.subject_input.clear()
+            self.body_input.clear()
+            self.priority_combo.setCurrentText("Media")
 
-        # Close the widget itself
-        self.close()
+            # Close the widget itself
+            self.close()
 
-        # Find and close the parent CDockWidget (floating container) if applicable
-        parent = self.parent()
-        while parent:
-            if parent.__class__.__name__ == "CDockWidget":
-                parent.close()
-                break
-            parent = parent.parent()
+            # Find and close the parent CDockWidget (floating container) if applicable
+            parent = self.parent()
+            while parent:
+                if parent.__class__.__name__ == "CDockWidget":
+                    parent.close()
+                    break
+                parent = parent.parent()
+        except Exception as e:
+            logging.getLogger("tardis").exception("Exception in ComposerView._on_sent")
 
     def _on_error(self, exc: Exception) -> None:
-        self.btn_send.setEnabled(True)
-        self.btn_send.setText("Enviar")
-        err_msg = f"Error inesperado: {exc}"
-        self.error_label.setText(err_msg)
-        self.error_label.setVisible(True)
-        if hasattr(self.main_window, "show_notification"):
-            self.main_window.show_notification(err_msg, "error")
+        try:
+            self.btn_send.setEnabled(True)
+            self.btn_send.setText("Enviar")
+            err_msg = f"Error inesperado: {exc}"
+            self.error_label.setText(err_msg)
+            self.error_label.setVisible(True)
+            if hasattr(self.main_window, "show_notification"):
+                self.main_window.show_notification(err_msg, "error")
+        except Exception as e:
+            logging.getLogger("tardis").exception("Exception in ComposerView._on_error")
+
+    def closeEvent(self, event) -> None:
+        try:
+            to_val = self.to_input.text().strip()
+            subject_val = self.subject_input.text().strip()
+            body_val = self.body_input.toPlainText().strip()
+
+            if to_val or subject_val or body_val:
+                reply = QMessageBox.question(
+                    self,
+                    "¿Descartar borrador?",
+                    "Tiene un borrador en proceso. ¿Realmente desea descartarlo?",
+                    QMessageBox.Yes | QMessageBox.No,
+                    QMessageBox.No
+                )
+                if reply == QMessageBox.No:
+                    event.ignore()
+                    return
+            event.accept()
+        except Exception as e:
+            logging.getLogger("tardis").exception("Exception in ComposerView.closeEvent")
+            event.accept()

@@ -418,14 +418,14 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
       y `affected_count > 0`, sin `message_uuid` duplicados en `data`.
       Depende de: 8.1.5.
 
-- [ ] **8.2.2** Implementar `service.list_trash(client, mailboxes:
+- [x] **8.2.2** Implementar `service.list_trash(client, mailboxes:
       list[str], limit: int = 50) -> NocoResult`: idéntico a
       `list_inbox` con `folder="trash"`.
       Verificación: `success=True` (puede devolver `affected_count==0` si
       no hay registros en trash, eso es válido).
       Depende de: 8.2.1.
 
-- [ ] **8.2.3** Refactorizar `InboxView` para aceptar
+- [x] **8.2.3** Refactorizar `InboxView` para aceptar
       `mode: Literal["inbox","sent","trash"] = "inbox"` en el
       constructor. En `load()`, según `mode`, llamar
       `service.list_inbox` / `service.list_sent` / `service.list_trash`
@@ -437,7 +437,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
       revisando el `where` resultante).
       Depende de: 8.2.2.
 
-- [ ] **8.2.4** Actualizar `modules/localmail/module.py`:
+- [x] **8.2.4** Actualizar `modules/localmail/module.py`:
       - Crear `sent_view = InboxView(app, client, config.mailboxes, mode="sent")`
         y `trash_view = InboxView(app, client, config.mailboxes, mode="trash")`.
       - Registrar ambos como dock panels junto al de "Bandeja de
@@ -454,7 +454,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
       entrada de menú.
       Depende de: 8.2.3.
 
-- [ ] **8.2.5** **CHECKPOINT 3**: con los datos creados en 8.1.5
+- [x] **8.2.5** **CHECKPOINT 3**: con los datos creados en 8.1.5
       (`destA`/`destB` en `TARDIS_MAILBOXES`), confirmar:
       - "Enviados" del remitente original muestra el correo enviado (1
         fila, no duplicada por `message_uuid`).
@@ -466,7 +466,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
 
 ### 8.3 — `notify()` desde módulo dummy (sección 2.9)
 
-- [ ] **8.3.1** Implementar `service.notify(client, to_users: list[str],
+- [x] **8.3.1** Implementar `service.notify(client, to_users: list[str],
       subject: str, body: str, module_origin: str) -> NocoResult`: atajo
       que llama `send_email(client, from_user=f"sistema:{module_origin}",
       to_users=to_users, subject=subject, body=body, priority="Media")`.
@@ -476,7 +476,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
       `from="sistema:test"`.
       Depende de: 8.2.5.
 
-- [ ] **8.3.2** Crear `modules/dummy_notify_test/module.py` con
+- [x] **8.3.2** Crear `modules/dummy_notify_test/module.py` con
       `register(app, client)`:
       - `app.add_menu_action("Dummy", "Enviar notificación de prueba",
         lambda: run_async(localmail_service.notify, client,
@@ -494,7 +494,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
       temporalmente vaciando `TARDIS_MAILBOXES` y restaurando después).
       Depende de: 8.3.1.
 
-- [ ] **8.3.3** **CHECKPOINT 4**: con `TARDIS_MAILBOXES` configurado
+- [x] **8.3.3** **CHECKPOINT 4**: con `TARDIS_MAILBOXES` configurado
       normalmente, ejecutar "Dummy > Enviar notificación de prueba",
       confirmar `success=True`, y verificar (refrescando manualmente
       "Bandeja de entrada") que el mensaje aparece con
@@ -503,7 +503,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
 
 ### 8.4 — Administrador de módulos (sección 2.10)
 
-- [ ] **8.4.1** Revisar/ajustar `app_core/module_registry.py`: confirmar
+- [x] **8.4.1** Revisar/ajustar `app_core/module_registry.py`: confirmar
       que `discover_and_register` devuelve `dict[str, ModuleInfo]` donde
       `ModuleInfo` tiene al menos `name: str, loaded: bool, error: str |
       None`. Ajustar si el shape real difiere.
@@ -512,7 +512,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
       `dummy_notify_test` con `loaded=True, error=None`.
       Depende de: 8.3.3.
 
-- [ ] **8.4.2** Crear `app_core/views/module_admin_view.py` con
+- [x] **8.4.2** Crear `app_core/views/module_admin_view.py` con
       `ModuleAdminView(QWidget)`: constructor recibe `module_info:
       dict[str, ModuleInfo]`, muestra `QTableWidget` con columnas
       Nombre/Estado/Error, una fila por entrada del dict.
@@ -522,7 +522,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
       confirmar 2 filas visibles con los valores correctos.
       Depende de: 8.4.1.
 
-- [ ] **8.4.3** En `main.py`, tras
+- [x] **8.4.3** En `main.py`, tras
       `module_info = discover_and_register(window, client)`, instanciar
       `ModuleAdminView(module_info)` y
       `window.add_dock_panel(admin_view, "Administrador de módulos", area="bottom")`.
@@ -530,7 +530,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
       `localmail` y `dummy_notify_test` como "Cargado".
       Depende de: 8.4.2.
 
-- [ ] **8.4.4** **CHECKPOINT 5**: introducir temporalmente un error de
+- [x] **8.4.4** **CHECKPOINT 5**: introducir temporalmente un error de
       sintaxis en `modules/dummy_notify_test/module.py` (ej. una variable
       no definida dentro de `register`), reiniciar Tardis, confirmar que:
       (a) Tardis arranca sin tumbarse, (b) el panel "Administrador de
@@ -540,7 +540,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
 
 ### 8.5 — Theming (sección 2.11)
 
-- [ ] **8.5.1** Crear `app_core/styles/dark.qss` con variables
+- [x] **8.5.1** Crear `app_core/styles/dark.qss` con variables
       documentadas en comentarios (fondo principal ~`#1e1e1e`, fondo
       secundario ~`#2a2a2a`, texto ~`#e0e0e0`, acento ~`#0a66c2`,
       error ~`#d9534f`, warning ~`#f0ad4e`), aplicando estos colores a
@@ -551,7 +551,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
       cargarlo).
       Depende de: 8.4.4.
 
-- [ ] **8.5.2** Implementar `app_core/theming.py`:
+- [x] **8.5.2** Implementar `app_core/theming.py`:
       `apply_theme(app: QApplication, theme: str = "dark") -> None` que
       lee `app_core/styles/<theme>.qss` y hace
       `app.setStyleSheet(contenido)`. Manejar `FileNotFoundError` con
@@ -560,7 +560,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
       `app.styleSheet()` no está vacío.
       Depende de: 8.5.1.
 
-- [ ] **8.5.3** Llamar `apply_theme(app, "dark")` en `main.py` antes de
+- [x] **8.5.3** Llamar `apply_theme(app, "dark")` en `main.py` antes de
       `window.show()`. Ajustar `MainWindow.show_notification` y cualquier
       color hardcodeado de error/éxito para usar `setObjectName(...)`
       compatible con selectores del `.qss` (ej.
@@ -572,7 +572,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
 
 ### 8.6 — Ventanas flotantes avanzadas (sección 2.12)
 
-- [ ] **8.6.1** En `MainWindow.add_floating_window`: usar
+- [x] **8.6.1** En `MainWindow.add_floating_window`: usar
       `QSettings("Tardis", "Tardis")`. Al crear la ventana, si existe
       `floating/<title>/geometry`, `restoreGeometry(...)`. En
       `closeEvent` de la ventana flotante, `saveGeometry()` →
@@ -581,7 +581,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
       a abrir → posición/tamaño se mantienen.
       Depende de: 8.5.3.
 
-- [ ] **8.6.2** En `ComposerView.closeEvent`: si `to`/`title`/`body` (tras
+- [x] **8.6.2** En `ComposerView.closeEvent`: si `to`/`title`/`body` (tras
       `strip()`) tienen contenido no vacío, mostrar
       `QMessageBox.question("¿Descartar borrador?", ...)`. Si el usuario
       elige "No"/cancelar, `event.ignore()`.
@@ -590,7 +590,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
       confirmar → se cierra.
       Depende de: 8.1.4, 8.6.1.
 
-- [ ] **8.6.3** **CHECKPOINT 6**: recorrido combinado — abrir "Redactar",
+- [x] **8.6.3** **CHECKPOINT 6**: recorrido combinado — abrir "Redactar",
       mover ventana, escribir asunto, intentar cerrar (confirmar diálogo),
       cancelar, completar y enviar correo, reabrir "Redactar" y confirmar
       que recuerda posición/tamaño de la vez anterior (sin contenido,
@@ -599,7 +599,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
 
 ### 8.7 — Cierre de Fase 2
 
-- [ ] **8.7.1** **CHECKPOINT FINAL**: recorrido completo end-to-end:
+- [x] **8.7.1** **CHECKPOINT FINAL**: recorrido completo end-to-end:
       bandeja con datos reales (8.0.10), envío multidestinatario
       (8.1.5), Enviados/Papelera correctos (8.2.5), notify dummy (8.3.3),
       administrador de módulos refleja estado real (8.4.4), tema oscuro
@@ -607,7 +607,7 @@ centralizada en NocoDB. Anotado en `modules/localmail/README.md`
       de descarte (8.6.3).
       Depende de: 8.6.3.
 
-- [ ] **8.7.2** Crear/actualizar `modules/localmail/README.md` con dos
+- [x] **8.7.2** Crear/actualizar `modules/localmail/README.md` con dos
       notas para fases futuras:
       (a) Sección 2.13 de este documento (reuso de `service.py` con
       `mailboxes=[una_sola_casilla]` para el árbol Casilla>Carpeta del

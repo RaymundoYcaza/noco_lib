@@ -1,7 +1,7 @@
 import sys
 from typing import Callable
 from PySide6.QtWidgets import QMainWindow, QWidget, QMenuBar, QToolBar, QStatusBar
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSettings
 from PySide6.QtGui import QIcon
 
 import PySide6QtAds as QtAds
@@ -15,6 +15,32 @@ if str(noco_lib_dir) not in sys.path:
 
 from noco_core.client import NocoClient
 from app_core.config import TardisConfig
+from app_core.widgets.toast import Toast
+from app_core.sidebar.tree_model import SidebarNode
+
+
+
+class FloatingDockWidget(QtAds.CDockWidget):
+    def __init__(self, dock_manager, title: str, parent: QWidget | None = None):
+        super().__init__(dock_manager, title, parent)
+        self.title_str = title
+
+    def closeEvent(self, event):
+        # Propagate close to the child widget first, so its closeEvent is called.
+        # If the child widget ignores/rejects the close, we ignore this event.
+        if self.widget():
+            if not self.widget().close():
+                event.ignore()
+                return
+                
+        settings = QSettings("Tardis", "Tardis")
+        container = self.floatingDockContainer()
+        if container:
+            settings.setValue(f"floating/{self.title_str}/geometry", container.saveGeometry())
+        else:
+            settings.setValue(f"floating/{self.title_str}/geometry", self.saveGeometry())
+        super().closeEvent(event)
+
 
 class MainWindow(QMainWindow):
     def __init__(self, client: NocoClient, config: TardisConfig | None = None, parent: QWidget | None = None):
@@ -25,47 +51,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Tardis")
         self.resize(1024, 768)
         
-        # Configure Premium Dark Theme stylesheet
-        self.setStyleSheet("""
-            QMainWindow {
-                background-color: #121214;
-                color: #e1e1e6;
-            }
-            QMenuBar {
-                background-color: #18181b;
-                color: #e1e1e6;
-                border-bottom: 1px solid #27272a;
-            }
-            QMenuBar::item:selected {
-                background-color: #27272a;
-                border-radius: 4px;
-            }
-            QMenu {
-                background-color: #18181b;
-                color: #e1e1e6;
-                border: 1px solid #27272a;
-                padding: 4px;
-            }
-            QMenu::item {
-                padding: 6px 20px;
-                border-radius: 4px;
-            }
-            QMenu::item:selected {
-                background-color: #2563eb;
-                color: #ffffff;
-            }
-            QToolBar {
-                background-color: #18181b;
-                border-bottom: 1px solid #27272a;
-                spacing: 6px;
-                padding: 4px;
-            }
-            QStatusBar {
-                background-color: #18181b;
-                color: #a1a1aa;
-                border-top: 1px solid #27272a;
-            }
-        """)
+        # QSS stylesheet is loaded and applied globally in main.py using apply_theme
 
         # Initialize Qt Advanced Docking System
         # CDockManager installs itself inside the main window
@@ -73,6 +59,8 @@ class MainWindow(QMainWindow):
         
         # Ensure status bar exists
         self.statusBar()
+        
+        self._extra_sidebar_nodes = []
 
     def add_dock_panel(self, widget: QWidget, title: str, area: str = "left") -> QtAds.CDockWidget:
         """
@@ -100,10 +88,21 @@ class MainWindow(QMainWindow):
         """
         Crea un panel flotante independiente con el widget proporcionado.
         """
-        dock_widget = QtAds.CDockWidget(self.dock_manager, title)
+        dock_widget = FloatingDockWidget(self.dock_manager, title)
         dock_widget.setWidget(widget)
         
         self.dock_manager.addDockWidgetFloating(dock_widget)
+        
+        # Restore geometry if it exists
+        settings = QSettings("Tardis", "Tardis")
+        geom = settings.value(f"floating/{title}/geometry")
+        if geom is not None:
+            container = dock_widget.floatingDockContainer()
+            if container:
+                container.restoreGeometry(geom)
+            else:
+                dock_widget.restoreGeometry(geom)
+                
         return dock_widget
 
     def add_menu_action(self, menu_path: str, label: str, callback: Callable) -> None:
@@ -165,14 +164,30 @@ class MainWindow(QMainWindow):
     def show_notification(self, text: str, level: str = "info") -> None:
         """
         Muestra un mensaje en la barra de estado con un color distintivo según el nivel de alerta.
+        También instancia y muestra un Toast flotante.
         """
+        # 1. Update status bar (fallback)
         status_bar = self.statusBar()
-        if level == "error":
-            status_bar.setStyleSheet("QStatusBar { color: #f87171; font-weight: bold; background-color: #18181b; border-top: 1px solid #27272a; }")
-        elif level == "warning":
-            status_bar.setStyleSheet("QStatusBar { color: #fbbf24; font-weight: bold; background-color: #18181b; border-top: 1px solid #27272a; }")
-        else:
-            # Default / Info color
-            status_bar.setStyleSheet("QStatusBar { color: #3b82f6; background-color: #18181b; border-top: 1px solid #27272a; }")
-            
+        status_bar.setStyleSheet("")
+        status_bar.setObjectName(f"status-{level}")
+        status_bar.style().unpolish(status_bar)
+        status_bar.style().polish(status_bar)
         status_bar.showMessage(text, 5000)
+
+        # 2. Instantiate and show floating Toast notification
+        try:
+            Toast(self, text, level)
+        except Exception as e:
+            import logging
+            logging.getLogger("tardis").exception("Exception displaying Toast notification")
+
+    def add_sidebar_node(self, node: SidebarNode) -> None:
+        """
+        Registers an additional top-level node in the sidebar
+        tree, contributed by a module. Must be called during
+        module registration (register(app, client)), before the
+        sidebar widget is built/shown.
+        """
+        self._extra_sidebar_nodes.append(node)
+
+
