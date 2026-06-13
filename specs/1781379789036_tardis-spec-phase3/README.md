@@ -513,7 +513,7 @@ everything downstream depends on having visible error logs.
 
 ### 9.4 — Reader pane improvements
 
-- [ ] **9.4.1** Fix mark-as-read reliability (Finding C).
+- [x] **9.4.1** Fix mark-as-read reliability (Finding C).
       Steps:
       1. In `ReaderView.show_email(email_id)`, ensure the
          `run_async(service.get_email, ...)` callback ALWAYS attempts
@@ -535,7 +535,7 @@ everything downstream depends on having visible error logs.
       (spot-check 1-2 via `scripts/diag_inbox.py`).
       Depends on: 9.3.2, 9.0.2.
 
-- [ ] **9.4.2** Improve reader content rendering (Finding C: "very
+- [x] **9.4.2** Improve reader content rendering (Finding C: "very
       basic").
       Steps:
       1. `ReaderView` layout, top to bottom:

@@ -142,11 +142,10 @@ class TestIntegrationFlow:
         # Mail should be marked as read
         assert db_records[0]["read"] is True
         # Reader should display the content
-        reader_content = reader.browser.toPlainText()
-        assert "De:      alice" in reader_content
-        assert "Para:    bob" in reader_content
-        assert "Asunto:  Hola Bob" in reader_content
-        assert "Este es un correo de prueba de Alice." in reader_content
+        assert reader.lbl_subject.text() == "Hola Bob"
+        assert reader.lbl_from.text() == "alice"
+        assert reader.lbl_to.text() == "bob"
+        assert reader.browser.toPlainText() == "Este es un correo de prueba de Alice."
 
         # --- STEP 4: User B archives the email ---
         inbox.table.selectRow(0)

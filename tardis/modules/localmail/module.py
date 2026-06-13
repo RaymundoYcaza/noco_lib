@@ -73,6 +73,12 @@ def register(app: MainWindow, client: NocoClient) -> None:
 
     app.sidebar_view.node_selected.connect(on_node_selected)
 
+    # Wire list -> reader (single click selection)
+    app.email_list_view.email_selected.connect(app.reader_view.show_email)
+
+    # Wire reader -> list (mark as read update in-place)
+    app.reader_view.email_read.connect(app.email_list_view.mark_row_as_read)
+
     # 8. Restore last selected node, default to All Mailboxes > Inbox (all:inbox)
     last_selected_node_id = settings.value("three_pane/last_selected_node")
     node_restored = False

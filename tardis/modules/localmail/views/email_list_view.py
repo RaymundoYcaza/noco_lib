@@ -297,6 +297,42 @@ class EmailListView(QWidget):
         except Exception as e:
             logging.getLogger("tardis").exception("Exception in EmailListView._repopulate_table")
 
+    def mark_row_as_read(self, email_id: int) -> None:
+        try:
+            # 1. Update the local cache (_all_rows)
+            for email in self._all_rows:
+                if email.get("Id") == email_id:
+                    email["read"] = True
+                    break
+            
+            # 2. Update the QTableWidget visual state
+            for row in range(self.table.rowCount()):
+                item_priority = self.table.item(row, 0)
+                if item_priority and item_priority.data(Qt.UserRole) == email_id:
+                    # Clear bold font
+                    normal_font = QFont()
+                    normal_font.setBold(False)
+                    
+                    # Get other items in this row
+                    item_from = self.table.item(row, 1)
+                    item_title = self.table.item(row, 2)
+                    item_date = self.table.item(row, 3)
+                    
+                    # Update fonts
+                    item_priority.setFont(normal_font)
+                    if item_from:
+                        item_from.setFont(normal_font)
+                        item_from.setForeground(QColor("#a1a1aa"))
+                    if item_title:
+                        item_title.setFont(normal_font)
+                        item_title.setForeground(QColor("#a1a1aa"))
+                    if item_date:
+                        item_date.setFont(normal_font)
+                        item_date.setForeground(QColor("#a1a1aa"))
+                    break
+        except Exception as e:
+            logging.getLogger("tardis").exception("Exception in EmailListView.mark_row_as_read")
+
     def _on_error(self, exc: Exception) -> None:
         try:
             self.btn_refresh.setEnabled(True)

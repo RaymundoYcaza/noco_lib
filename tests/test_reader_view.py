@@ -76,18 +76,18 @@ class TestReaderView:
         }
         result = NocoResult.ok("read", data=email_data)
 
-        with patch("modules.localmail.service.get_email", return_value=result) as mock_get:
+        with patch("modules.localmail.service.get_email", return_value=result) as mock_get, \
+             patch("modules.localmail.service.mark_as_read") as mock_mark:
             view = ReaderView(mock_main_window, mock_client)
             view.show_email(201)
 
             mock_get.assert_called_once_with(mock_client, 201)
-            content = view.browser.toPlainText()
-            assert "De:      sender@test.com" in content
-            assert "Para:    recipient@test.com" in content
-            assert "CC:      cc@test.com" in content
-            assert "Fecha:   2026-06-13T10:00:00Z" in content
-            assert "Asunto:  Asunto de Prueba" in content
-            assert "Hola,\nEsto es una prueba." in content
+            assert view.lbl_subject.text() == "Asunto de Prueba"
+            assert view.lbl_from.text() == "sender@test.com"
+            assert view.lbl_to.text() == "recipient@test.com"
+            assert view.lbl_cc.text() == "cc@test.com"
+            assert "2026-06-13 10:00" in view.lbl_date.text()
+            assert view.browser.toPlainText() == "Hola,\nEsto es una prueba."
 
     def test_show_email_success_without_cc(self, mock_run, mock_main_window, mock_client):
         """Check rendering an email when CC is empty."""
@@ -102,16 +102,17 @@ class TestReaderView:
         }
         result = NocoResult.ok("read", data=email_data)
 
-        with patch("modules.localmail.service.get_email", return_value=result):
+        with patch("modules.localmail.service.get_email", return_value=result), \
+             patch("modules.localmail.service.mark_as_read") as mock_mark:
             view = ReaderView(mock_main_window, mock_client)
             view.show_email(202)
 
-            content = view.browser.toPlainText()
-            assert "De:      sender@test.com" in content
-            assert "Para:    recipient@test.com" in content
-            assert "CC:" not in content
-            assert "Fecha:   2026-06-13T10:15:00Z" in content
-            assert "Asunto:  Sin CC" in content
+            assert view.lbl_subject.text() == "Sin CC"
+            assert view.lbl_from.text() == "sender@test.com"
+            assert view.lbl_to.text() == "recipient@test.com"
+            assert not view.lbl_cc.isVisible()
+            assert "2026-06-13 10:15" in view.lbl_date.text()
+            assert view.browser.toPlainText() == "Cuerpo del correo."
 
     def test_show_email_not_found(self, mock_run, mock_main_window, mock_client):
         """If database returns success=True but data is None (e.g. deleted), show not found."""
@@ -139,3 +140,30 @@ class TestReaderView:
             view.show_email(401)
             assert "Error inesperado: Fallo grave" in view.browser.toPlainText()
             mock_main_window.show_notification.assert_called_once_with("Error inesperado: Fallo grave", "error")
+
+    def test_show_email_marks_as_read(self, mock_run, mock_main_window, mock_client):
+        email_data = {
+            "Id": 201,
+            "from": "sender@test.com",
+            "to": "recipient@test.com",
+            "cc": "cc@test.com",
+            "CreatedAt": "2026-06-13T10:00:00Z",
+            "title": "Asunto de Prueba",
+            "body": "Hola,\nEsto es una prueba."
+        }
+        result_get = NocoResult.ok("read", data=email_data)
+        result_read = NocoResult.ok("update", data=[])
+
+        with patch("modules.localmail.service.get_email", return_value=result_get) as mock_get, \
+             patch("modules.localmail.service.mark_as_read", return_value=result_read) as mock_mark:
+             
+            view = ReaderView(mock_main_window, mock_client)
+            
+            emitted_ids = []
+            view.email_read.connect(emitted_ids.append)
+            
+            view.show_email(201)
+            
+            mock_get.assert_called_once_with(mock_client, 201)
+            mock_mark.assert_called_once_with(mock_client, 201)
+            assert emitted_ids == [201]
