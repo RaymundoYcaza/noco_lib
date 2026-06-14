@@ -848,7 +848,7 @@ Approach:
 
 ### 10.4 — Module UI panel
 
-- [ ] **10.4.1** Implement `modules/pdf_export/module.py` —
+- [x] **10.4.1** Implement `modules/pdf_export/module.py` —
       `register(app, client)`.
       Steps:
       1. Create a `QWidget` panel with:
@@ -888,7 +888,7 @@ Approach:
 
 ### 10.5 — Integration checkpoint
 
-- [ ] **10.5.1** **CHECKPOINT FINAL (Phase 4a)**:
+- [x] **10.5.1** **CHECKPOINT FINAL (Phase 4a)**:
       Run through all 10 document types with brand `bisstox` using a
       test script `scripts/test_all_doctypes.py` that generates one PDF
       per doc type with representative content for each. For each:
@@ -906,7 +906,7 @@ Approach:
       - `page_break` section forces a new page in a 2-page test.
       Depends on: 10.4.1.
 
-- [ ] **10.5.2** Update `app_core/EXTENSION_POINTS.md` to document the
+- [x] **10.5.2** Update `app_core/EXTENSION_POINTS.md` to document the
       PDF export API for other module authors:
       ```python
       from modules.pdf_export.engine import generate_pdf, generate_html, validate_document
