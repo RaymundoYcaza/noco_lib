@@ -1,0 +1,1220 @@
+<!doctype html>
+<html lang="es-EC">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aprobación requerida para ajuste de numeración | Inorizonti</title>
+
+
+  <style>
+  /* styles/base.css */
+:root {
+  --font-main: Arial, Helvetica, sans-serif;
+  --font-display: Arial, Helvetica, sans-serif;
+
+  --ink: #111827;
+  --ink-2: #243041;
+  --muted: #667085;
+  --muted-2: #8a94a6;
+  --line: #d7dde8;
+  --line-soft: #e8edf5;
+  --paper: #ffffff;
+  --canvas: #eef1f6;
+  --soft: #f6f8fb;
+  --soft-2: #f9fafb;
+  --white: #ffffff;
+
+  --warning: #b45309;
+  --warning-soft: #fff7ed;
+  --danger: #be123c;
+  --danger-soft: #fff1f2;
+  --success: #047857;
+  --success-soft: #ecfdf5;
+  --info-soft: #eff6ff;
+
+  --shadow-screen: 0 18px 55px rgba(15, 23, 42, 0.18);
+  --radius-xs: 6px;
+  --radius-sm: 9px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+
+  --page-width: 210mm;
+  --page-height: 297mm;
+  --page-padding-x: 17mm;
+  --page-padding-y: 15mm;
+  --print-margin-top: 12mm;
+  --print-margin-bottom: 18mm;
+
+  --primary: #123c69;
+  --primary-dark: #08233f;
+  --primary-ink: #ffffff;
+  --primary-soft: #e8f1fb;
+  --secondary: #334155;
+  --accent: #0ea5e9;
+  --accent-soft: #e0f2fe;
+
+  --header-gradient-start: var(--primary-dark);
+  --header-gradient-end: var(--primary);
+  --masthead-fg: #ffffff;
+  --masthead-muted: rgba(255, 255, 255, 0.78);
+  --masthead-background: linear-gradient(135deg, var(--header-gradient-start), var(--header-gradient-end));
+  --masthead-border: var(--accent);
+  --masthead-pattern: linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px);
+  --masthead-pattern-size: 14mm 14mm;
+  --masthead-pattern-opacity: 0.35;
+  --masthead-orb: radial-gradient(circle, rgba(255,255,255,0.14), rgba(255,255,255,0) 68%);
+  --masthead-orb-opacity: 1;
+
+  --status-pill-bg: rgba(255,255,255,0.18);
+  --status-pill-fg: var(--masthead-fg);
+  --status-pill-border: transparent;
+
+  --watermark-text: "DOCUMENTO";
+}
+
+* { box-sizing: border-box; }
+html { background: var(--canvas); }
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-main);
+  font-size: 12.5px;
+  line-height: 1.46;
+}
+p { margin: 0 0 3.5mm; }
+p:last-child { margin-bottom: 0; }
+strong { font-weight: 900; }
+a { color: inherit; }
+
+.page {
+  width: var(--page-width);
+  min-height: var(--page-height);
+  margin: 22px auto;
+  background: var(--paper);
+  box-shadow: var(--shadow-screen);
+  position: relative;
+  overflow: hidden;
+}
+
+.orient-landscape {
+  --page-width: 297mm;
+  --page-height: 210mm;
+  --page-padding-x: 14mm;
+  --page-padding-y: 12mm;
+}
+
+.page-body {
+  padding: 0 var(--page-padding-x) 30mm;
+  position: relative;
+  z-index: 2;
+}
+
+.print-hint {
+  width: var(--page-width);
+  margin: 16px auto 0;
+  color: #475467;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.print-hint code {
+  background: rgba(255,255,255,0.75);
+  border: 1px solid var(--line);
+  padding: 2px 5px;
+  border-radius: 5px;
+}
+
+.running-header {
+  display: none;
+}
+
+@media screen and (max-width: 980px) {
+  body { background: var(--paper); }
+  .print-hint { display: none; }
+  .page {
+    width: 100%;
+    min-height: auto;
+    margin: 0;
+    box-shadow: none;
+  }
+}
+
+
+/* styles/components.css */
+/* Header / masthead */
+.masthead {
+  min-height: 38mm;
+  padding: 11mm var(--page-padding-x) 9mm;
+  color: var(--masthead-fg);
+  background: var(--masthead-background);
+  border-bottom: 1.5mm solid var(--masthead-border);
+  position: relative;
+  overflow: hidden;
+}
+.compact-header .masthead {
+  min-height: 30mm;
+  padding-top: 8mm;
+  padding-bottom: 7mm;
+}
+.masthead::before {
+  content: "";
+  position: absolute;
+  inset: auto -22mm -34mm auto;
+  width: 96mm;
+  height: 96mm;
+  border-radius: 50%;
+  background: var(--masthead-orb);
+  opacity: var(--masthead-orb-opacity);
+}
+.masthead::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--masthead-pattern);
+  background-size: var(--masthead-pattern-size);
+  opacity: var(--masthead-pattern-opacity);
+  pointer-events: none;
+}
+.masthead-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 6mm;
+  align-items: center;
+  width: min(100%, calc(var(--page-width) - (2 * var(--page-padding-x))));
+  margin-inline: auto;
+}
+.brand-card {
+  background: transparent;
+  border: 0;
+  min-height: 25mm;
+  width: 52mm;
+  flex: 0 0 52mm;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.logo-stack {
+  width: 100%;
+  max-width: 52mm;
+  height: 25mm;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.logo-stack svg,
+.logo-stack img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: 100%;
+  height: 100%;
+}
+.document-heading { min-width: 0; align-self: center; flex: 1 1 auto; }
+.eyebrow {
+  font-size: 9.5px;
+  letter-spacing: 1.25px;
+  text-transform: uppercase;
+  font-weight: 900;
+  color: var(--masthead-muted);
+  margin-bottom: 1.8mm;
+}
+.document-title {
+  font-family: var(--font-display);
+  font-size: 23px;
+  line-height: 1.08;
+  margin: 0;
+  font-weight: 950;
+  letter-spacing: -0.35px;
+}
+.document-subtitle {
+  margin-top: 2mm;
+  color: var(--masthead-muted);
+  font-size: 12.2px;
+  max-width: 150mm;
+}
+
+/* Cover */
+.cover-page {
+  display: none;
+  min-height: 186mm;
+  padding: 18mm var(--page-padding-x) 16mm;
+  align-content: center;
+  background: linear-gradient(135deg, var(--soft), #ffffff);
+  border-bottom: 1px solid var(--line-soft);
+}
+.has-cover .cover-page { display: grid; }
+.cover-kicker {
+  color: var(--primary-dark);
+  font-weight: 900;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+.cover-title {
+  margin: 4mm 0 3mm;
+  font-size: 38px;
+  line-height: 1.05;
+  letter-spacing: -0.7px;
+  color: var(--primary-dark);
+}
+.cover-summary {
+  max-width: 145mm;
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+/* Metadata */
+.meta-band {
+  margin-top: -7mm;
+  position: relative;
+  z-index: 4;
+  background: var(--paper);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-lg);
+  padding: 4.5mm 5mm;
+  box-shadow: 0 12px 26px rgba(15,23,42,0.11);
+}
+.has-cover .meta-band { margin-top: 8mm; }
+.no-meta-band .meta-band { display: none; }
+.no-meta-band .document-flow { margin-top: 11mm; }
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4mm 6mm;
+}
+.orient-landscape .meta-grid { grid-template-columns: repeat(6, 1fr); }
+.field-label {
+  color: var(--muted);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.45px;
+  font-weight: 850;
+  margin-bottom: 1mm;
+}
+.field-value {
+  color: var(--ink);
+  font-weight: 850;
+  min-height: 14px;
+}
+.field-muted { color: var(--muted); font-weight: 650; }
+.document-code-inline {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--primary-dark);
+  letter-spacing: 0.08px;
+}
+.document-code-prefix,
+.document-code-number {
+  font-weight: 950;
+  white-space: nowrap;
+}
+.document-code-number { letter-spacing: 0.18px; }
+.status-pill,
+.status-pill-meta,
+.classification {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.status-pill-meta {
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  border: 1px solid var(--line-soft);
+}
+.classification {
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  font-weight: 900;
+}
+.audience-internal .classification { background: #fef3c7; color: #92400e; }
+.audience-confidential .classification { background: var(--danger-soft); color: var(--danger); }
+.audience-draft .classification,
+.status-draft .classification { background: #f3f4f6; color: #4b5563; }
+
+/* Letter compact reference */
+.letter-reference-line {
+  display: none;
+  align-items: center;
+  gap: 2mm;
+  width: 100%;
+  max-width: 166mm;
+  margin: 0 auto 6mm;
+  padding: 2.4mm 0 3mm;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--muted);
+  font-size: 11.2px;
+  font-weight: 800;
+  letter-spacing: 0.05px;
+}
+.letter-reference-line span:first-child { color: var(--primary-dark); }
+.letter-reference-separator { color: var(--muted-2); font-weight: 900; }
+.doc-letter.no-meta-band .letter-reference-line,
+.doc-communication.no-meta-band .letter-reference-line {
+  display: flex !important;
+}
+
+/* Document flow */
+.document-flow { margin-top: 8mm; }
+.section { margin-top: 7mm; }
+.section:first-child { margin-top: 0; }
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 3mm;
+  color: var(--primary-dark);
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 950;
+  letter-spacing: -0.1px;
+}
+.section-title::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--accent);
+  flex: 0 0 auto;
+}
+.section-kicker {
+  margin: -1mm 0 3.5mm 12px;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+.section-grid-2,
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5mm;
+}
+.section-grid-3,
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4mm;
+}
+
+/* Cards and blocks */
+.panel,
+.callout,
+.notice,
+.widget-card,
+.aside-card,
+.metric-card {
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+}
+.panel {
+  padding: 5mm;
+}
+.panel-soft { background: var(--soft); }
+.callout {
+  border-left: 4px solid var(--accent);
+  background: var(--accent-soft);
+  padding: 4mm 5mm;
+  color: var(--ink-2);
+}
+.callout strong { color: var(--primary-dark); }
+.notice {
+  padding: 4mm;
+  background: var(--soft-2);
+  color: var(--ink-2);
+}
+.notice.warning { background: var(--notice-warning-bg, var(--warning-soft)); color: var(--notice-warning-fg, #78350f); border-color: var(--notice-warning-border, #fed7aa); }
+.notice.danger { background: var(--notice-danger-bg, var(--danger-soft)); color: var(--notice-danger-fg, #881337); border-color: var(--notice-danger-border, #fecdd3); }
+.notice.success { background: var(--success-soft); color: var(--success); border-color: #bbf7d0; }
+
+.widget-card,
+.aside-card {
+  overflow: hidden;
+}
+.widget-card-title,
+.aside-card-title {
+  padding: 3mm 4mm;
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  font-weight: 950;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.45px;
+}
+.widget-card-body,
+.aside-card-body { padding: 4mm; }
+
+.kv-list { display: grid; gap: 3mm; }
+.kv-row {
+  display: grid;
+  grid-template-columns: 31mm minmax(0, 1fr);
+  gap: 3mm;
+  align-items: start;
+}
+.kv-stacked .kv-row {
+  display: block;
+  padding-bottom: 3mm;
+  border-bottom: 1px solid var(--line-soft);
+}
+.kv-stacked .kv-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.kv-stacked .kv-key { margin-bottom: 1mm; }
+.kv-key {
+  color: var(--muted);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+  font-weight: 900;
+}
+.kv-value {
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line-soft);
+  background: var(--soft);
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--ink-2);
+}
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4mm;
+}
+.metric-card {
+  padding: 4mm;
+  background: linear-gradient(180deg, #ffffff, var(--soft));
+}
+.metric-label {
+  color: var(--muted);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 900;
+}
+.metric-value {
+  margin-top: 1mm;
+  font-size: 17px;
+  font-weight: 950;
+  color: var(--primary-dark);
+}
+.metric-note {
+  margin-top: 1mm;
+  color: var(--muted);
+  font-size: 10.5px;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+}
+thead th {
+  background: var(--primary-dark);
+  color: var(--white);
+  text-align: left;
+  font-size: 10.5px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3mm;
+}
+tbody td {
+  border-top: 1px solid var(--line-soft);
+  padding: 3mm;
+  vertical-align: top;
+}
+tbody tr:nth-child(even) td { background: var(--soft-2); }
+.compact-table th,
+.compact-table td { padding: 2.4mm 2.8mm; }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.nowrap { white-space: nowrap; }
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+}
+.status.open { background: var(--warning-soft); color: var(--warning); }
+.status.done { background: var(--success-soft); color: var(--success); }
+.status.blocked { background: var(--danger-soft); color: var(--danger); }
+
+.steps {
+  display: grid;
+  gap: 3mm;
+  counter-reset: step;
+}
+.step {
+  display: grid;
+  grid-template-columns: 8mm 1fr;
+  gap: 3mm;
+  align-items: start;
+}
+.step::before {
+  counter-increment: step;
+  content: counter(step);
+  width: 7mm;
+  height: 7mm;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--white);
+  font-weight: 900;
+  font-size: 10px;
+}
+.signature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12mm;
+  margin-top: 9mm;
+}
+.signature-box {
+  min-height: 28mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.signature-line {
+  border-top: 1px solid var(--ink);
+  padding-top: 2mm;
+}
+.signature-name { font-weight: 900; }
+.signature-role {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* Sidebar page */
+.sidebar-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(48mm, 56mm);
+  gap: 8mm;
+  align-items: start;
+  margin-top: 7mm;
+}
+.sidebar-page:first-child { margin-top: 0; }
+.sidebar-main,
+.sidebar-rail { min-width: 0; }
+.sidebar-rail {
+  display: grid;
+  gap: 4mm;
+  align-content: start;
+}
+.sidebar-rail .metric-grid { grid-template-columns: 1fr; }
+
+/* Footer
+   En pantalla se fija al final visual de la página, como en la plantilla v5.2.
+   En impresión, print_weasy.css o print_chromium.css reemplazan este comportamiento. */
+.brand-footer {
+  position: absolute;
+  left: var(--page-padding-x);
+  right: var(--page-padding-x);
+  bottom: 7mm;
+  z-index: 3;
+  display: block;
+  padding-top: 3mm;
+  border-top: 1px solid var(--line-soft);
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--muted);
+  font-size: 10.5px;
+}
+.brand-footer-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8mm;
+  align-items: center;
+  width: 100%;
+  min-height: 15mm;
+}
+.footer-left { min-width: 0; }
+.footer-brand-name-text,
+.footer-brand-line-text,
+.footer-contact-line {
+  display: block;
+  max-width: 100%;
+}
+.footer-brand-name-text { color: var(--primary-dark); }
+.footer-contact-line { color: var(--muted); }
+.footer-right:empty { display: none; }
+
+/* Watermark */
+.audience-confidential .page::after,
+.audience-draft .page::after,
+.status-draft .page::after {
+  content: var(--watermark-text);
+  position: fixed;
+  z-index: 1;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(15, 23, 42, 0.055);
+  font-size: 44mm;
+  font-weight: 900;
+  letter-spacing: 4px;
+  transform: rotate(-28deg);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.avoid-break {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+@media screen and (max-width: 980px) {
+  .masthead-content,
+  .meta-grid,
+  .metric-grid,
+  .signature-grid,
+  .section-grid-2,
+  .section-grid-3,
+  .grid-2,
+  .grid-3,
+  .sidebar-page {
+    grid-template-columns: 1fr;
+  }
+  .letter-reference-line { flex-wrap: wrap; }
+}
+
+
+/* styles/document_types.css */
+.doc-letter .document-flow,
+.doc-communication .document-flow {
+  margin-top: 0;
+}
+
+.letter-shell {
+  max-width: 166mm;
+  margin-inline: auto;
+}
+
+.letter-panel {
+  padding: 8mm 9mm;
+  font-size: 13px;
+  line-height: 1.62;
+}
+
+/*
+  Los tipos documentales no deben imponer colores de otra marca.
+  Por defecto usan la paleta activa del brand theme.
+*/
+.doc-support-ticket .section-title::before,
+.doc-technical-report .section-title::before,
+.doc-delivery-act .section-title::before,
+.doc-minutes .section-title::before,
+.doc-quote .section-title::before,
+.doc-report .section-title::before,
+.doc-manual .section-title::before,
+.doc-checklist .section-title::before {
+  background: var(--document-accent, var(--accent));
+}
+
+.total-row td {
+  font-weight: 950;
+  background: var(--primary-soft) !important;
+  color: var(--primary-dark);
+}
+
+.checklist-list {
+  display: grid;
+  gap: 2.2mm;
+}
+
+.checklist-item {
+  display: grid;
+  grid-template-columns: 5.5mm 1fr;
+  gap: 2.4mm;
+  align-items: start;
+}
+
+.checklist-box {
+  width: 4mm;
+  height: 4mm;
+  border: 1.5px solid var(--primary);
+  border-radius: 1mm;
+  margin-top: .7mm;
+}
+
+.checklist-item.checked .checklist-box {
+  background: var(--primary);
+}
+
+.checklist-item.checked .checklist-box::after {
+  content: "✓";
+  display: block;
+  color: #fff;
+  font-size: 9px;
+  line-height: 4mm;
+  text-align: center;
+  font-weight: 900;
+}
+
+
+/* styles/themes/inorizonti.css */
+/*
+  Tema aislado Inorizonti
+  ------------------------------------------------------------
+  Contiene únicamente variables y reglas visuales de Inorizonti.
+  Paleta: rojo corporativo, negro cálido, fondos blancos/sobrios y acentos discretos.
+*/
+
+body.brand-inorizonti {
+  --primary: #e9290c;
+  --primary-dark: #1f1e1d;
+  --primary-ink: #ffffff;
+  --primary-soft: #fff1ed;
+  --secondary: #423c38;
+  --accent: #e9290c;
+  --accent-2: #b42318;
+  --accent-soft: #fff4f0;
+  --document-accent: #e9290c;
+
+  --header-gradient-start: #ffffff;
+  --header-gradient-end: #fff7f2;
+  --masthead-fg: #1f1e1d;
+  --masthead-muted: rgba(31, 30, 29, 0.70);
+  --masthead-background:
+    radial-gradient(circle at 88% 30%, rgba(233, 41, 12, 0.13), transparent 31%),
+    linear-gradient(135deg, #ffffff 0%, #fff9f6 46%, #f7f8fa 100%);
+  --masthead-border: #e9290c;
+  --masthead-pattern: repeating-linear-gradient(135deg, rgba(233, 41, 12, 0.075) 0 1px, transparent 1px 13mm);
+  --masthead-pattern-size: auto;
+  --masthead-pattern-opacity: 0.62;
+  --masthead-orb: radial-gradient(circle, rgba(233, 41, 12, 0.12), rgba(233, 41, 12, 0) 67%);
+  --masthead-orb-opacity: 1;
+
+  --status-pill-bg: #fff1ed;
+  --status-pill-fg: #b42318;
+  --status-pill-border: rgba(233, 41, 12, 0.30);
+  --watermark-text: "CONFIDENCIAL";
+}
+
+body.brand-inorizonti .logo-stack {
+  max-width: 49mm;
+}
+
+body.brand-inorizonti .brand-svg {
+  display: block;
+}
+
+body.brand-inorizonti .masthead-content::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -5mm;
+  width: 18mm;
+  height: 1.4mm;
+  background: var(--masthead-border);
+  border-radius: 999px;
+}
+
+body.brand-inorizonti .masthead {
+  border-bottom-color: var(--masthead-border);
+}
+
+body.brand-inorizonti .meta-band {
+  border-top: 1.1mm solid rgba(233, 41, 12, 0.82);
+  box-shadow: 0 14px 30px rgba(31, 30, 29, 0.10);
+}
+
+body.brand-inorizonti .section-title {
+  color: var(--primary-dark);
+}
+
+body.brand-inorizonti .section-title::before {
+  width: 4px;
+  height: 17px;
+  background: #e9290c;
+}
+
+body.brand-inorizonti .classification,
+body.brand-inorizonti .status-pill-meta,
+body.brand-inorizonti .status {
+  background: #fff1ed;
+  color: #1f1e1d;
+  border-color: rgba(233, 41, 12, 0.20);
+}
+
+body.brand-inorizonti thead th {
+  background: #1f1e1d;
+  color: #ffffff;
+}
+
+body.brand-inorizonti .widget-card-title,
+body.brand-inorizonti .aside-card-title {
+  background: linear-gradient(90deg, rgba(233, 41, 12, 0.13), rgba(31, 30, 29, 0.045));
+  color: #1f1e1d;
+}
+
+body.brand-inorizonti .callout {
+  background: linear-gradient(135deg, #fff4f0, #ffffff);
+  border-left-color: #e9290c;
+}
+
+body.brand-inorizonti .notice.warning {
+  background: #fff7f2;
+  color: #7a271a;
+  border-color: rgba(233, 41, 12, 0.25);
+}
+
+body.brand-inorizonti .notice.danger {
+  background: #fff1ed;
+  color: #7a271a;
+  border-color: rgba(233, 41, 12, 0.35);
+}
+
+body.brand-inorizonti .metric-value,
+body.brand-inorizonti .footer-brand-name-text,
+body.brand-inorizonti .callout strong {
+  color: #1f1e1d;
+}
+
+body.brand-inorizonti .step::before,
+body.brand-inorizonti .checklist-item.checked .checklist-box,
+body.brand-inorizonti .checklist-box {
+  border-color: #e9290c;
+}
+
+body.brand-inorizonti .step::before,
+body.brand-inorizonti .checklist-item.checked .checklist-box {
+  background: #e9290c;
+}
+
+body.brand-inorizonti .brand-footer-inner {
+  border-top-color: rgba(233, 41, 12, 0.16);
+}
+
+
+/* styles/print_common.css */
+@page {
+  size: A4 portrait;
+  margin: var(--print-margin-top) 0 var(--print-margin-bottom) 0;
+}
+@page:first {
+  margin-top: 0;
+}
+@page landscape {
+  size: A4 landscape;
+  margin: 10mm 0 16mm 0;
+}
+@page landscape:first {
+  margin-top: 0;
+}
+
+@media print {
+  html,
+  body {
+    width: auto !important;
+    min-height: auto !important;
+    background: #ffffff !important;
+  }
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-hint {
+    display: none !important;
+  }
+  .page {
+    width: auto !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    background: transparent !important;
+  }
+  .orient-landscape .page {
+    page: landscape;
+  }
+  .masthead {
+    width: 100% !important;
+    margin: 0 0 7mm !important;
+    padding: 8mm 0 7mm !important;
+    border-bottom-width: 1.3mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+  .compact-header .masthead {
+    min-height: 27mm;
+    padding-top: 6.5mm !important;
+    padding-bottom: 6mm !important;
+  }
+  .masthead-content {
+    width: calc(100% - (2 * var(--page-padding-x))) !important;
+    margin-inline: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 7mm !important;
+  }
+  .brand-card {
+    width: 52mm !important;
+    flex: 0 0 52mm !important;
+  }
+  .document-heading {
+    flex: 1 1 auto !important;
+  }
+  .document-title {
+    font-size: 21px;
+    line-height: 1.08;
+  }
+  .document-subtitle {
+    max-width: none;
+    font-size: 11.8px;
+  }
+  .page-body {
+    padding: 0 var(--page-padding-x) 9mm !important;
+    position: relative;
+    z-index: 2;
+  }
+  .meta-band {
+    margin-top: 0 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .meta-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 3.4mm 5mm !important;
+  }
+  .orient-landscape .meta-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+  .no-meta-band .document-flow { margin-top: 7mm !important; }
+  .doc-letter.no-meta-band .document-flow,
+  .doc-communication.no-meta-band .document-flow { margin-top: 0 !important; }
+
+  .section-title,
+  h1, h2, h3, h4, h5, h6,
+  thead {
+    break-after: avoid-page;
+    page-break-after: avoid;
+  }
+  .section-title + *,
+  h1 + *, h2 + *, h3 + *, h4 + *, h5 + *, h6 + * {
+    break-before: avoid-page;
+    page-break-before: avoid;
+  }
+  p, li, td, th {
+    orphans: 3;
+    widows: 3;
+  }
+
+  .avoid-break,
+  .section-short,
+  .widget-card,
+  .aside-card,
+  .metric-card,
+  .signature-box,
+  .letter-panel,
+  .meta-band,
+  tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .section,
+  .panel,
+  .callout,
+  .notice,
+  table,
+  figure,
+  blockquote {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  thead { display: table-header-group !important; }
+  tfoot { display: table-footer-group !important; }
+
+  .audience-confidential .page::after,
+  .audience-draft .page::after,
+  .status-draft .page::after {
+    content: none !important;
+    display: none !important;
+  }
+  body.audience-confidential::before,
+  body.audience-draft::before,
+  body.status-draft::before {
+    content: var(--watermark-text);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 230mm;
+    max-width: 92vw;
+    z-index: 1;
+    transform: translate(-50%, -50%) rotate(-28deg);
+    transform-origin: center;
+    text-align: center;
+    color: rgba(15, 23, 42, 0.060);
+    font-size: 28mm;
+    line-height: 1;
+    font-weight: 950;
+    letter-spacing: 2.2mm;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+}
+
+
+/* styles/print_chromium.css */
+/*
+  Fallback para impresión desde navegador Chromium/Edge.
+  Este modo no tiene CSS Paged Media completo. Usa table-footer-group.
+*/
+@media print {
+  .page {
+    display: table !important;
+    table-layout: fixed !important;
+    width: 100% !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+  .brand-footer {
+    display: table-footer-group !important;
+    position: static !important;
+    width: 100% !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+  .brand-footer-inner {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6mm !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 12mm !important;
+    padding: 2.1mm var(--page-padding-x) 2mm !important;
+    border-top: 1px solid var(--line-soft) !important;
+    background: #ffffff !important;
+    color: var(--muted) !important;
+    font-size: 9.2px !important;
+    line-height: 1.18 !important;
+  }
+  .footer-brand-name-text,
+  .footer-brand-line-text,
+  .footer-contact-line {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .footer-right {
+    white-space: nowrap !important;
+  }
+}
+
+  </style>
+</head>  <body class="doc brand-inorizonti orient-portrait audience-external doc-letter no-meta-band doc-letter-clean status-final no-meta-band" data-brand="inorizonti" data-doc-type="letter" data-orientation="portrait">
+    <div class="print-hint no-print">
+      <span><strong>Inorizonti document factory:</strong> Carta · Aprobación requerida para ajuste de numeración</span>
+      <span><code>Ctrl + P</code> → A4 → gráficos de fondo activos.</span>
+    </div>
+
+    <main class="page">
+      <div class="running-header">
+        DIN-COM-000001 · Aprobación requerida para ajuste de numeración
+      </div>
+
+<header class="masthead">
+  <div class="masthead-content">
+    <div class="brand-card" aria-label="Logo de marca">
+<div class="logo-stack">
+    <svg class="brand-svg brand-svg-inorizonti" aria-label="Inorizonti" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 220" role="img">
+  <title>Inorizonti</title>
+  <defs>
+    <linearGradient id="inorizonti-swoosh" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e9290c" stop-opacity="0.98" />
+      <stop offset="0.55" stop-color="#f05a3f" stop-opacity="0.95" />
+      <stop offset="1" stop-color="#e9290c" stop-opacity="0.88" />
+    </linearGradient>
+  </defs>
+  <path d="M120 72 C235 6 425 12 598 88 C459 38 299 43 154 101 C138 107 126 113 112 120 C111 120 110 120 109 119 C111 115 114 110 119 105 C147 77 169 64 211 50" fill="url(#inorizonti-swoosh)" opacity="0.98" />
+  <text x="54" y="172" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="900" letter-spacing="-3.5" fill="#1f1e1d">INORIZONTI</text>
+  <rect x="56" y="188" width="96" height="7" rx="3.5" fill="#e9290c" />
+  <text x="166" y="197" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="1.8" fill="#423c38">S.A.S.</text>
+</svg>
+
+</div>    </div>
+
+    <div class="document-heading">
+      <div class="eyebrow">Carta · Inorizonti</div>
+      <h1 class="document-title">Aprobación requerida para ajuste de numeración</h1>
+      <div class="document-subtitle">Comunicación formal dirigida al cliente para solicitar su aprobación antes de proceder.</div>
+    </div>
+  </div>
+</header>
+
+<footer class="brand-footer">
+  <div class="brand-footer-inner">
+    <div class="footer-left">
+      <strong class="footer-brand-name-text">Inorizonti S.A.S.</strong>
+      <span class="footer-brand-line-text">Tiempo, Ahorro y Riesgo bajo control para operaciones B2B.</span>
+      <span class="footer-contact-line">www.inorizonti.com · contacto@inorizonti.com · +593 000 000 000</span>
+    </div>
+    <div class="footer-right">Comunicación oficial</div>
+  </div>
+</footer>
+      <div class="page-body">
+
+<div class="letter-reference-line" aria-label="Referencia documental compacta">
+  <span>DIN-COM-000001</span>
+  <span class="letter-reference-separator" aria-hidden="true">·</span>
+  <span>2026-06-03</span>
+  <span class="letter-reference-separator" aria-hidden="true">·</span>
+  <span>Ticket DIN-1780432370499</span>
+</div>
+        <div class="document-flow">
+  <div class="letter-shell">
+    <div class="panel letter-panel">
+              
+    <div class='letter-shell'><div class='panel letter-panel'><p>Estimado cliente:</p><p>Por medio del presente se resume el alcance del ticket relacionado con la numeración de proveedores. El ajuste se ejecutará sobre el código PRV indicado por ustedes en correo de aprobación.</p><p>Para proceder, requerimos su confirmación expresa. Sin dicha aprobación no será posible avanzar con la intervención.</p><p>Atentamente,<br><strong>Equipo Inorizonti</strong></p></div></div>
+
+
+
+    </div>
+  </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

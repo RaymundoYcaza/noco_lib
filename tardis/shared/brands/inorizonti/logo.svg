@@ -1,0 +1,14 @@
+<svg class="brand-svg brand-svg-inorizonti" aria-label="Inorizonti" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 220" role="img">
+  <title>Inorizonti</title>
+  <defs>
+    <linearGradient id="inorizonti-swoosh" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e9290c" stop-opacity="0.98" />
+      <stop offset="0.55" stop-color="#f05a3f" stop-opacity="0.95" />
+      <stop offset="1" stop-color="#e9290c" stop-opacity="0.88" />
+    </linearGradient>
+  </defs>
+  <path d="M120 72 C235 6 425 12 598 88 C459 38 299 43 154 101 C138 107 126 113 112 120 C111 120 110 120 109 119 C111 115 114 110 119 105 C147 77 169 64 211 50" fill="url(#inorizonti-swoosh)" opacity="0.98" />
+  <text x="54" y="172" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="900" letter-spacing="-3.5" fill="#1f1e1d">INORIZONTI</text>
+  <rect x="56" y="188" width="96" height="7" rx="3.5" fill="#e9290c" />
+  <text x="166" y="197" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="1.8" fill="#423c38">S.A.S.</text>
+</svg>

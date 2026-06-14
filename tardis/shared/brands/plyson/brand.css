@@ -1,0 +1,130 @@
+/* ==========================================================================
+   brand.css — Plyson brand overrides
+   Mirrors the inorizonti brand.css structure with Plyson colors from brand.json.
+   ========================================================================== */
+
+body.brand-plyson {
+  --primary: #1a5276;
+  --primary-dark: #113851;
+  --primary-ink: #ffffff;
+  --primary-soft: #eaf2f8;
+  --secondary: #1f4a6e;
+  --accent: #2980b9;
+  --accent-2: #1f6ba0;
+  --accent-soft: #d4e6f1;
+  --document-accent: #2980b9;
+
+  --header-gradient-start: #113851;
+  --header-gradient-end: #1a5276;
+  --masthead-fg: #ffffff;
+  --masthead-muted: rgba(255, 255, 255, 0.78);
+  --masthead-background:
+    radial-gradient(circle at 88% 30%, rgba(41, 128, 185, 0.15), transparent 31%),
+    linear-gradient(135deg, #113851 0%, #1a5276 100%);
+  --masthead-border: #2980b9;
+  --masthead-pattern: repeating-linear-gradient(135deg, rgba(255,255,255,0.08) 0 1px, transparent 1px 13mm);
+  --masthead-pattern-size: auto;
+  --masthead-pattern-opacity: 0.35;
+  --masthead-orb: radial-gradient(circle, rgba(41, 128, 185, 0.14), rgba(41, 128, 185, 0) 68%);
+  --masthead-orb-opacity: 1;
+
+  --status-pill-bg: rgba(255,255,255,0.18);
+  --status-pill-fg: #ffffff;
+  --status-pill-border: transparent;
+  --watermark-text: "CONFIDENCIAL";
+}
+
+body.brand-plyson .logo-stack {
+  max-width: 52mm;
+}
+
+body.brand-plyson .brand-svg-plyson {
+  display: block;
+}
+
+body.brand-plyson .masthead-content::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -5mm;
+  width: 18mm;
+  height: 1.4mm;
+  background: var(--masthead-border);
+  border-radius: 999px;
+}
+
+body.brand-plyson .masthead {
+  border-bottom-color: var(--masthead-border);
+}
+
+body.brand-plyson .meta-band {
+  border-top: 1.1mm solid rgba(41, 128, 185, 0.82);
+  box-shadow: 0 14px 30px rgba(17, 56, 81, 0.10);
+}
+
+body.brand-plyson .section-title {
+  color: var(--primary-dark);
+}
+
+body.brand-plyson .section-title::before {
+  width: 4px;
+  height: 17px;
+  background: #2980b9;
+}
+
+body.brand-plyson .classification,
+body.brand-plyson .status-pill-meta,
+body.brand-plyson .status {
+  background: #eaf2f8;
+  color: #113851;
+  border-color: rgba(41, 128, 185, 0.20);
+}
+
+body.brand-plyson thead th {
+  background: #113851;
+  color: #ffffff;
+}
+
+body.brand-plyson .widget-card-title,
+body.brand-plyson .aside-card-title {
+  background: linear-gradient(90deg, rgba(41, 128, 185, 0.13), rgba(17, 56, 81, 0.045));
+  color: #113851;
+}
+
+body.brand-plyson .callout {
+  background: linear-gradient(135deg, #d4e6f1, #ffffff);
+  border-left-color: #2980b9;
+}
+
+body.brand-plyson .notice.warning {
+  background: #fff7ed;
+  color: #78350f;
+  border-color: rgba(41, 128, 185, 0.25);
+}
+
+body.brand-plyson .notice.danger {
+  background: #fff1f2;
+  color: #881337;
+  border-color: rgba(41, 128, 185, 0.35);
+}
+
+body.brand-plyson .metric-value,
+body.brand-plyson .footer-brand-name-text,
+body.brand-plyson .callout strong {
+  color: #113851;
+}
+
+body.brand-plyson .step::before,
+body.brand-plyson .checklist-item.checked .checklist-box,
+body.brand-plyson .checklist-box {
+  border-color: #2980b9;
+}
+
+body.brand-plyson .step::before,
+body.brand-plyson .checklist-item.checked .checklist-box {
+  background: #2980b9;
+}
+
+body.brand-plyson .brand-footer-inner {
+  border-top-color: rgba(41, 128, 185, 0.16);
+}

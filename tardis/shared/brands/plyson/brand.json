@@ -1,0 +1,25 @@
+{
+  "name": "plyson",
+  "display_name": "Plyson",
+  "legal_name": "Plyson | Unidad de formación y multimedia",
+  "tagline": "Comunicación, formación y contenido multimedia con intención estratégica.",
+  "site": "www.plyson.com",
+  "mail": "ventas@plyson.com",
+  "phone": "+593 000 000 000",
+  "colors": {
+    "primary": "#1a5276",
+    "primary_dark": "#113851",
+    "accent": "#2980b9",
+    "header_gradient_start": "#113851",
+    "header_gradient_end": "#1a5276"
+  },
+  "footer_defaults": {
+    "unit_label": "Unidad de formación y multimedia",
+    "show_contact": true
+  },
+  "header_rows": {
+    "row1": "legend",
+    "row2": "din",
+    "row3": "date"
+  }
+}

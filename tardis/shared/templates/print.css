@@ -1,0 +1,234 @@
+/* ==========================================================================
+   print.css — @page rules, @media print rules (both print_common.css and
+   print_chromium.css sections from the reference letter.html).
+   ========================================================================== */
+
+/* ============================================================
+   PRINT_COMMON.CSS — Standard @page and @media print rules
+   ============================================================ */
+@page {
+  size: A4 portrait;
+  margin: var(--print-margin-top) 0 var(--print-margin-bottom) 0;
+}
+@page:first {
+  margin-top: 0;
+}
+
+@page landscape {
+  size: A4 landscape;
+  margin: 10mm 0 16mm 0;
+}
+@page landscape:first {
+  margin-top: 0;
+}
+
+@media print {
+  html,
+  body {
+    width: auto !important;
+    min-height: auto !important;
+    background: #ffffff !important;
+  }
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-hint {
+    display: none !important;
+  }
+
+  .page {
+    width: auto !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    background: transparent !important;
+  }
+  .orient-landscape .page {
+    page: landscape;
+  }
+
+  .masthead {
+    width: 100% !important;
+    margin: 0 0 7mm !important;
+    padding: 8mm 0 7mm !important;
+    border-bottom-width: 1.3mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+  .compact-header .masthead {
+    min-height: 27mm;
+    padding-top: 6.5mm !important;
+    padding-bottom: 6mm !important;
+  }
+  .masthead-content {
+    width: calc(100% - (2 * var(--page-padding-x))) !important;
+    margin-inline: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 7mm !important;
+  }
+  .brand-card {
+    width: 52mm !important;
+    flex: 0 0 52mm !important;
+  }
+  .document-heading {
+    flex: 1 1 auto !important;
+  }
+  .document-title {
+    font-size: 21px;
+    line-height: 1.08;
+  }
+  .document-subtitle {
+    max-width: none;
+    font-size: 11.8px;
+  }
+
+  .page-body {
+    padding: 0 var(--page-padding-x) 9mm !important;
+    position: relative;
+    z-index: 2;
+  }
+
+  .meta-band {
+    margin-top: 0 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .meta-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 3.4mm 5mm !important;
+  }
+  .orient-landscape .meta-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+  .no-meta-band .document-flow { margin-top: 7mm !important; }
+  .doc-letter.no-meta-band .document-flow,
+  .doc-communication.no-meta-band .document-flow { margin-top: 0 !important; }
+
+  .section-title,
+  h1, h2, h3, h4, h5, h6,
+  thead {
+    break-after: avoid-page;
+    page-break-after: avoid;
+  }
+  .section-title + *,
+  h1 + *, h2 + *, h3 + *, h4 + *, h5 + *, h6 + * {
+    break-before: avoid-page;
+    page-break-before: avoid;
+  }
+  p, li, td, th {
+    orphans: 3;
+    widows: 3;
+  }
+
+  .avoid-break,
+  .section-short,
+  .widget-card,
+  .aside-card,
+  .metric-card,
+  .signature-box,
+  .letter-panel,
+  .meta-band,
+  tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .section,
+  .panel,
+  .callout,
+  .notice,
+  table,
+  figure,
+  blockquote {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  thead { display: table-header-group !important; }
+  tfoot { display: table-footer-group !important; }
+
+  /* Watermark in print: moved from .page::after to body::before */
+  .audience-confidential .page::after,
+  .audience-draft .page::after,
+  .status-draft .page::after {
+    content: none !important;
+    display: none !important;
+  }
+  body.audience-confidential::before,
+  body.audience-draft::before,
+  body.status-draft::before {
+    content: var(--watermark-text);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 230mm;
+    max-width: 92vw;
+    z-index: 1;
+    transform: translate(-50%, -50%) rotate(-28deg);
+    transform-origin: center;
+    text-align: center;
+    color: rgba(15, 23, 42, 0.060);
+    font-size: 28mm;
+    line-height: 1;
+    font-weight: 950;
+    letter-spacing: 2.2mm;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+}
+
+/* ============================================================
+   PRINT_CHROMIUM.CSS — Chromium/Edge fallback print rules
+   Uses table-footer-group for footer repetition on every page.
+   ============================================================ */
+@media print {
+  .page {
+    display: table !important;
+    table-layout: fixed !important;
+    width: 100% !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+
+  .brand-footer {
+    display: table-footer-group !important;
+    position: static !important;
+    width: 100% !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .brand-footer-inner {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6mm !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 12mm !important;
+    padding: 2.1mm var(--page-padding-x) 2mm !important;
+    border-top: 1px solid var(--line-soft) !important;
+    background: #ffffff !important;
+    color: var(--muted) !important;
+    font-size: 9.2px !important;
+    line-height: 1.18 !important;
+  }
+
+  .footer-brand-name-text,
+  .footer-brand-line-text,
+  .footer-contact-line {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .footer-right {
+    white-space: nowrap !important;
+  }
+}

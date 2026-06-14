@@ -1,0 +1,130 @@
+/* ==========================================================================
+   brand.css — Inorizonti brand overrides
+   Extracted from reference letter.html — styles/themes/inorizonti.css
+   ========================================================================== */
+
+body.brand-inorizonti {
+  --primary: #e9290c;
+  --primary-dark: #1f1e1d;
+  --primary-ink: #ffffff;
+  --primary-soft: #fff1ed;
+  --secondary: #423c38;
+  --accent: #e9290c;
+  --accent-2: #b42318;
+  --accent-soft: #fff4f0;
+  --document-accent: #e9290c;
+
+  --header-gradient-start: #ffffff;
+  --header-gradient-end: #fff7f2;
+  --masthead-fg: #1f1e1d;
+  --masthead-muted: rgba(31, 30, 29, 0.70);
+  --masthead-background:
+    radial-gradient(circle at 88% 30%, rgba(233, 41, 12, 0.13), transparent 31%),
+    linear-gradient(135deg, #ffffff 0%, #fff9f6 46%, #f7f8fa 100%);
+  --masthead-border: #e9290c;
+  --masthead-pattern: repeating-linear-gradient(135deg, rgba(233, 41, 12, 0.075) 0 1px, transparent 1px 13mm);
+  --masthead-pattern-size: auto;
+  --masthead-pattern-opacity: 0.62;
+  --masthead-orb: radial-gradient(circle, rgba(233, 41, 12, 0.12), rgba(233, 41, 12, 0) 67%);
+  --masthead-orb-opacity: 1;
+
+  --status-pill-bg: #fff1ed;
+  --status-pill-fg: #b42318;
+  --status-pill-border: rgba(233, 41, 12, 0.30);
+  --watermark-text: "CONFIDENCIAL";
+}
+
+body.brand-inorizonti .logo-stack {
+  max-width: 49mm;
+}
+
+body.brand-inorizonti .brand-svg {
+  display: block;
+}
+
+body.brand-inorizonti .masthead-content::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -5mm;
+  width: 18mm;
+  height: 1.4mm;
+  background: var(--masthead-border);
+  border-radius: 999px;
+}
+
+body.brand-inorizonti .masthead {
+  border-bottom-color: var(--masthead-border);
+}
+
+body.brand-inorizonti .meta-band {
+  border-top: 1.1mm solid rgba(233, 41, 12, 0.82);
+  box-shadow: 0 14px 30px rgba(31, 30, 29, 0.10);
+}
+
+body.brand-inorizonti .section-title {
+  color: var(--primary-dark);
+}
+
+body.brand-inorizonti .section-title::before {
+  width: 4px;
+  height: 17px;
+  background: #e9290c;
+}
+
+body.brand-inorizonti .classification,
+body.brand-inorizonti .status-pill-meta,
+body.brand-inorizonti .status {
+  background: #fff1ed;
+  color: #1f1e1d;
+  border-color: rgba(233, 41, 12, 0.20);
+}
+
+body.brand-inorizonti thead th {
+  background: #1f1e1d;
+  color: #ffffff;
+}
+
+body.brand-inorizonti .widget-card-title,
+body.brand-inorizonti .aside-card-title {
+  background: linear-gradient(90deg, rgba(233, 41, 12, 0.13), rgba(31, 30, 29, 0.045));
+  color: #1f1e1d;
+}
+
+body.brand-inorizonti .callout {
+  background: linear-gradient(135deg, #fff4f0, #ffffff);
+  border-left-color: #e9290c;
+}
+
+body.brand-inorizonti .notice.warning {
+  background: #fff7f2;
+  color: #7a271a;
+  border-color: rgba(233, 41, 12, 0.25);
+}
+
+body.brand-inorizonti .notice.danger {
+  background: #fff1ed;
+  color: #7a271a;
+  border-color: rgba(233, 41, 12, 0.35);
+}
+
+body.brand-inorizonti .metric-value,
+body.brand-inorizonti .footer-brand-name-text,
+body.brand-inorizonti .callout strong {
+  color: #1f1e1d;
+}
+
+body.brand-inorizonti .step::before,
+body.brand-inorizonti .checklist-item.checked .checklist-box,
+body.brand-inorizonti .checklist-box {
+  border-color: #e9290c;
+}
+
+body.brand-inorizonti .step::before,
+body.brand-inorizonti .checklist-item.checked .checklist-box {
+  background: #e9290c;
+}
+
+body.brand-inorizonti .brand-footer-inner {
+  border-top-color: rgba(233, 41, 12, 0.16);
+}

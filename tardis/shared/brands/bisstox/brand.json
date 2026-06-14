@@ -1,0 +1,25 @@
+{
+  "name": "bisstox",
+  "display_name": "Bisstox",
+  "legal_name": "Bisstox | Unidad de software y transformación digital",
+  "tagline": "Automatiza tus procesos. Enfócate en crecer.",
+  "site": "www.bisstox.com",
+  "mail": "ventas@bisstox.com",
+  "phone": "+593 099 563 2379",
+  "colors": {
+    "primary": "#123c69",
+    "primary_dark": "#08233f",
+    "accent": "#0ea5e9",
+    "header_gradient_start": "#08233f",
+    "header_gradient_end": "#123c69"
+  },
+  "footer_defaults": {
+    "unit_label": "Unidad de software y transformación digital",
+    "show_contact": true
+  },
+  "header_rows": {
+    "row1": "legend",
+    "row2": "din",
+    "row3": "date"
+  }
+}

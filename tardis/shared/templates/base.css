@@ -1,0 +1,143 @@
+/* ==========================================================================
+   base.css — Design tokens, page layout, body, and responsive
+   Extracted from reference letter.html (lines 11–142).
+   ========================================================================== */
+
+:root {
+  --font-main: Arial, Helvetica, sans-serif;
+  --font-display: Arial, Helvetica, sans-serif;
+
+  --ink: #111827;
+  --ink-2: #243041;
+  --muted: #667085;
+  --muted-2: #8a94a6;
+  --line: #d7dde8;
+  --line-soft: #e8edf5;
+  --paper: #ffffff;
+  --canvas: #eef1f6;
+  --soft: #f6f8fb;
+  --soft-2: #f9fafb;
+  --white: #ffffff;
+
+  --warning: #b45309;
+  --warning-soft: #fff7ed;
+  --danger: #be123c;
+  --danger-soft: #fff1f2;
+  --success: #047857;
+  --success-soft: #ecfdf5;
+  --info-soft: #eff6ff;
+
+  --shadow-screen: 0 18px 55px rgba(15, 23, 42, 0.18);
+  --radius-xs: 6px;
+  --radius-sm: 9px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+
+  --page-width: 210mm;
+  --page-height: 297mm;
+  --page-padding-x: 17mm;
+  --page-padding-y: 15mm;
+  --print-margin-top: 12mm;
+  --print-margin-bottom: 18mm;
+
+  --primary: #123c69;
+  --primary-dark: #08233f;
+  --primary-ink: #ffffff;
+  --primary-soft: #e8f1fb;
+  --secondary: #334155;
+  --accent: #0ea5e9;
+  --accent-soft: #e0f2fe;
+
+  --header-gradient-start: var(--primary-dark);
+  --header-gradient-end: var(--primary);
+  --masthead-fg: #ffffff;
+  --masthead-muted: rgba(255, 255, 255, 0.78);
+  --masthead-background: linear-gradient(135deg, var(--header-gradient-start), var(--header-gradient-end));
+  --masthead-border: var(--accent);
+  --masthead-pattern: linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px);
+  --masthead-pattern-size: 14mm 14mm;
+  --masthead-pattern-opacity: 0.35;
+  --masthead-orb: radial-gradient(circle, rgba(255,255,255,0.14), rgba(255,255,255,0) 68%);
+  --masthead-orb-opacity: 1;
+
+  --status-pill-bg: rgba(255,255,255,0.18);
+  --status-pill-fg: var(--masthead-fg);
+  --status-pill-border: transparent;
+
+  --watermark-text: "DOCUMENTO";
+}
+
+* { box-sizing: border-box; }
+html { background: var(--canvas); }
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-main);
+  font-size: 12.5px;
+  line-height: 1.46;
+}
+
+p { margin: 0 0 3.5mm; }
+p:last-child { margin-bottom: 0; }
+strong { font-weight: 900; }
+a { color: inherit; }
+
+/* ---- Page ---- */
+.page {
+  width: var(--page-width);
+  min-height: var(--page-height);
+  margin: 22px auto;
+  background: var(--paper);
+  box-shadow: var(--shadow-screen);
+  position: relative;
+  overflow: hidden;
+}
+
+.orient-landscape {
+  --page-width: 297mm;
+  --page-height: 210mm;
+  --page-padding-x: 14mm;
+  --page-padding-y: 12mm;
+}
+
+.page-body {
+  padding: 0 var(--page-padding-x) 30mm;
+  position: relative;
+  z-index: 2;
+}
+
+/* ---- Print hint (screen only) ---- */
+.print-hint {
+  width: var(--page-width);
+  margin: 16px auto 0;
+  color: #475467;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.print-hint code {
+  background: rgba(255,255,255,0.75);
+  border: 1px solid var(--line);
+  padding: 2px 5px;
+  border-radius: 5px;
+}
+
+/* ---- Running header (print only) ---- */
+.running-header {
+  display: none;
+}
+
+/* ---- Responsive ---- */
+@media screen and (max-width: 980px) {
+  body { background: var(--paper); }
+  .print-hint { display: none; }
+  .page {
+    width: 100%;
+    min-height: auto;
+    margin: 0;
+    box-shadow: none;
+  }
+}

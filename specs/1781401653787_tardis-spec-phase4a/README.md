@@ -367,7 +367,7 @@ Approach:
 
 ### 10.0 — Setup and dependencies
 
-- [ ] **10.0.1** Add all Phase 4a dependencies to `pyproject.toml`
+- [x] **10.0.1** Add all Phase 4a dependencies to `pyproject.toml`
       (section 2.12): `mistune>=3.0`, `jsonschema>=4.0`, `pikepdf>=8.0`,
       `reportlab>=4.0`, `Jinja2>=3.1`. Run `pip install -e .` and confirm
       all install without errors. `PySide6-WebEngine` should already be
@@ -378,7 +378,7 @@ Approach:
       QWebEngineView; print('all ok')"` prints `all ok`.
       Depends on: none.
 
-- [ ] **10.0.2** Create the full directory structure from section 3:
+- [x] **10.0.2** Create the full directory structure from section 3:
       `modules/pdf_export/` (with `__init__.py` in each package),
       `shared/brands/bisstox/`, `shared/brands/plyson/`,
       `shared/brands/inorizonti/`, `shared/templates/macros/`.
@@ -387,7 +387,7 @@ Approach:
       directories without errors.
       Depends on: 10.0.1.
 
-- [ ] **10.0.3** Create `brand.json` for all three brands following
+- [x] **10.0.3** Create `brand.json` for all three brands following
       section 4's schema:
       - `bisstox`: primary `#123c69`, accent `#0ea5e9`, gradient
         `#08233f → #123c69`. Contact: `ventas@bisstox.com`,
@@ -403,7 +403,7 @@ Approach:
       exits 0 for all three brands.
       Depends on: 10.0.2.
 
-- [ ] **10.0.4** Create placeholder `logo.svg` for each brand:
+- [x] **10.0.4** Create placeholder `logo.svg` for each brand:
       - `bisstox/logo.svg`: SVG text "BISSTOX" in dark blue, styled
         similarly to the inorizonti SVG in the reference HTML (bold
         sans-serif, brand accent underline rectangle).
@@ -422,7 +422,7 @@ Approach:
       ET.parse('shared/brands/inorizonti/logo.svg')"` exits 0.
       Depends on: 10.0.3.
 
-- [ ] **10.0.5** Copy the CSS from the reference `letter.html` into the
+- [x] **10.0.5** Copy the CSS from the reference `letter.html` into the
       correct CSS files under `shared/templates/`. Split as follows:
       - `base.css`: the `:root` variables block + `body`, `p`, `.page`,
         `.orient-landscape`, `.page-body`, `.print-hint`,

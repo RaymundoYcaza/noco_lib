@@ -1,0 +1,130 @@
+/* ==========================================================================
+   brand.css — Bisstox brand overrides
+   Mirrors the inorizonti brand.css structure with Bisstox colors from brand.json.
+   ========================================================================== */
+
+body.brand-bisstox {
+  --primary: #123c69;
+  --primary-dark: #08233f;
+  --primary-ink: #ffffff;
+  --primary-soft: #e8f1fb;
+  --secondary: #1e3a5f;
+  --accent: #0ea5e9;
+  --accent-2: #0284c7;
+  --accent-soft: #e0f2fe;
+  --document-accent: #0ea5e9;
+
+  --header-gradient-start: #08233f;
+  --header-gradient-end: #123c69;
+  --masthead-fg: #ffffff;
+  --masthead-muted: rgba(255, 255, 255, 0.78);
+  --masthead-background:
+    radial-gradient(circle at 88% 30%, rgba(14, 165, 233, 0.15), transparent 31%),
+    linear-gradient(135deg, #08233f 0%, #123c69 100%);
+  --masthead-border: #0ea5e9;
+  --masthead-pattern: repeating-linear-gradient(135deg, rgba(255,255,255,0.08) 0 1px, transparent 1px 13mm);
+  --masthead-pattern-size: auto;
+  --masthead-pattern-opacity: 0.35;
+  --masthead-orb: radial-gradient(circle, rgba(14, 165, 233, 0.14), rgba(14, 165, 233, 0) 68%);
+  --masthead-orb-opacity: 1;
+
+  --status-pill-bg: rgba(255,255,255,0.18);
+  --status-pill-fg: #ffffff;
+  --status-pill-border: transparent;
+  --watermark-text: "CONFIDENCIAL";
+}
+
+body.brand-bisstox .logo-stack {
+  max-width: 52mm;
+}
+
+body.brand-bisstox .brand-svg-bisstox {
+  display: block;
+}
+
+body.brand-bisstox .masthead-content::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -5mm;
+  width: 18mm;
+  height: 1.4mm;
+  background: var(--masthead-border);
+  border-radius: 999px;
+}
+
+body.brand-bisstox .masthead {
+  border-bottom-color: var(--masthead-border);
+}
+
+body.brand-bisstox .meta-band {
+  border-top: 1.1mm solid rgba(14, 165, 233, 0.82);
+  box-shadow: 0 14px 30px rgba(8, 35, 63, 0.10);
+}
+
+body.brand-bisstox .section-title {
+  color: var(--primary-dark);
+}
+
+body.brand-bisstox .section-title::before {
+  width: 4px;
+  height: 17px;
+  background: #0ea5e9;
+}
+
+body.brand-bisstox .classification,
+body.brand-bisstox .status-pill-meta,
+body.brand-bisstox .status {
+  background: #e8f1fb;
+  color: #08233f;
+  border-color: rgba(14, 165, 233, 0.20);
+}
+
+body.brand-bisstox thead th {
+  background: #08233f;
+  color: #ffffff;
+}
+
+body.brand-bisstox .widget-card-title,
+body.brand-bisstox .aside-card-title {
+  background: linear-gradient(90deg, rgba(14, 165, 233, 0.13), rgba(8, 35, 63, 0.045));
+  color: #08233f;
+}
+
+body.brand-bisstox .callout {
+  background: linear-gradient(135deg, #e0f2fe, #ffffff);
+  border-left-color: #0ea5e9;
+}
+
+body.brand-bisstox .notice.warning {
+  background: #fff7ed;
+  color: #78350f;
+  border-color: rgba(14, 165, 233, 0.25);
+}
+
+body.brand-bisstox .notice.danger {
+  background: #fff1f2;
+  color: #881337;
+  border-color: rgba(14, 165, 233, 0.35);
+}
+
+body.brand-bisstox .metric-value,
+body.brand-bisstox .footer-brand-name-text,
+body.brand-bisstox .callout strong {
+  color: #08233f;
+}
+
+body.brand-bisstox .step::before,
+body.brand-bisstox .checklist-item.checked .checklist-box,
+body.brand-bisstox .checklist-box {
+  border-color: #0ea5e9;
+}
+
+body.brand-bisstox .step::before,
+body.brand-bisstox .checklist-item.checked .checklist-box {
+  background: #0ea5e9;
+}
+
+body.brand-bisstox .brand-footer-inner {
+  border-top-color: rgba(14, 165, 233, 0.16);
+}
