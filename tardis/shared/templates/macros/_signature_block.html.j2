@@ -1,0 +1,15 @@
+{% macro render_signature_block(section) %}
+<div class="signature-grid">
+  {% for signer in section.get("signers", []) %}
+  <div class="signature-box">
+    <div class="signature-line">
+      <div class="signature-name">{{ signer.get("name", "") }}</div>
+      <div class="signature-role">{{ signer.get("role", "") }}</div>
+      {% if signer.get("date") %}
+      <div class="signature-date">{{ signer["date"] }}</div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endmacro %}

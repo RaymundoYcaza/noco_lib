@@ -1,0 +1,73 @@
+{% from "macros/_table.html.j2" import render_table %}
+{% from "macros/_checklist.html.j2" import render_checklist %}
+{% from "macros/_callout.html.j2" import render_callout %}
+{% from "macros/_indicator.html.j2" import render_indicator %}
+{% from "macros/_divider.html.j2" import render_divider %}
+{% from "macros/_signature_block.html.j2" import render_signature_block %}
+
+{% macro render_section(section) %}
+  {% if section.type == "text" %}
+    <div class="section">
+      {% if section.get("title") %}<h2 class="section-title">{{ section["title"] }}</h2>{% endif %}
+      {% if section.get("kicker") %}<div class="section-kicker">{{ section["kicker"] }}</div>{% endif %}
+      <div class="section-text">{{ section.get("content", "") | e }}</div>
+    </div>
+
+  {% elif section.type == "markdown" %}
+    <div class="section">
+      {% if section.get("title") %}<h2 class="section-title">{{ section["title"] }}</h2>{% endif %}
+      {% if section.get("kicker") %}<div class="section-kicker">{{ section["kicker"] }}</div>{% endif %}
+      <div class="content-html">{{ section.get("_rendered_html", "") | safe }}</div>
+    </div>
+
+  {% elif section.type == "html" %}
+    <div class="section">
+      {% if section.get("title") %}<h2 class="section-title">{{ section["title"] }}</h2>{% endif %}
+      {% if section.get("kicker") %}<div class="section-kicker">{{ section["kicker"] }}</div>{% endif %}
+      <div class="content-html">{{ section.get("content", "") | safe }}</div>
+    </div>
+
+  {% elif section.type == "table" %}
+    <div class="section">
+      {% if section.get("title") %}<h2 class="section-title">{{ section["title"] }}</h2>{% endif %}
+      {% if section.get("kicker") %}<div class="section-kicker">{{ section["kicker"] }}</div>{% endif %}
+      {{ render_table(section) }}
+    </div>
+
+  {% elif section.type == "checklist" %}
+    <div class="section">
+      {% if section.get("title") %}<h2 class="section-title">{{ section["title"] }}</h2>{% endif %}
+      {% if section.get("kicker") %}<div class="section-kicker">{{ section["kicker"] }}</div>{% endif %}
+      {{ render_checklist(section) }}
+    </div>
+
+  {% elif section.type == "callout" %}
+    <div class="section">
+      {% if section.get("title") %}<h2 class="section-title">{{ section["title"] }}</h2>{% endif %}
+      {% if section.get("kicker") %}<div class="section-kicker">{{ section["kicker"] }}</div>{% endif %}
+      {{ render_callout(section) }}
+    </div>
+
+  {% elif section.type == "indicator" %}
+    <div class="section">
+      {% if section.get("title") %}<h2 class="section-title">{{ section["title"] }}</h2>{% endif %}
+      {% if section.get("kicker") %}<div class="section-kicker">{{ section["kicker"] }}</div>{% endif %}
+      {{ render_indicator(section) }}
+    </div>
+
+  {% elif section.type == "divider" %}
+    <div class="section">
+      {{ render_divider(section) }}
+    </div>
+
+  {% elif section.type == "page_break" %}
+    <div class="page-break" style="page-break-before: always;"></div>
+
+  {% elif section.type == "signature_block" %}
+    <div class="section">
+      {% if section.get("title") %}<h2 class="section-title">{{ section["title"] }}</h2>{% endif %}
+      {{ render_signature_block(section) }}
+    </div>
+
+  {% endif %}
+{% endmacro %}

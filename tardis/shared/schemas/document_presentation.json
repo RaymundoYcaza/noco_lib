@@ -1,0 +1,62 @@
+{
+  "report": {
+    "legend": "Informe",
+    "footer": {
+      "show_contact": true
+    }
+  },
+  "technical_report": {
+    "legend": "Informe Técnico",
+    "footer": {
+      "show_contact": true
+    }
+  },
+  "support_ticket": {
+    "legend": "Ticket de Soporte",
+    "footer": {
+      "show_contact": true
+    }
+  },
+  "delivery_act": {
+    "legend": "Acta de Entrega",
+    "footer": {
+      "show_contact": true
+    }
+  },
+  "letter": {
+    "legend": "Carta",
+    "footer": {
+      "show_contact": true
+    }
+  },
+  "communication": {
+    "legend": "Comunicación",
+    "footer": {
+      "show_contact": true
+    }
+  },
+  "minutes": {
+    "legend": "Acta de Reunión",
+    "footer": {
+      "show_contact": true
+    }
+  },
+  "quote": {
+    "legend": "Cotización",
+    "footer": {
+      "show_contact": true
+    }
+  },
+  "manual": {
+    "legend": "Manual",
+    "footer": {
+      "show_contact": false
+    }
+  },
+  "checklist": {
+    "legend": "Lista de Verificación",
+    "footer": {
+      "show_contact": true
+    }
+  }
+}

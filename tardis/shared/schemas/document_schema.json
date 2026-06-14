@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft-2020-12/schema",
+  "$id": "https://tardis.app/schemas/document_schema.json",
+  "title": "Tardis PDF Document",
+  "description": "Schema for documents passed to the PDF export engine",
+  "type": "object",
+  "properties": {
+    "brand": {
+      "type": "string",
+      "description": "Brand slug — must match a directory under shared/brands/",
+      "enum": ["bisstox", "plyson", "inorizonti"]
+    },
+    "doc_type": {
+      "type": "string",
+      "description": "Document type identifier — must match an entry in document_presentation.json",
+      "enum": [
+        "report",
+        "technical_report",
+        "support_ticket",
+        "delivery_act",
+        "letter",
+        "communication",
+        "minutes",
+        "quote",
+        "manual",
+        "checklist"
+      ]
+    },
+    "audience": {
+      "type": "string",
+      "description": "Audience classification — controls watermark and pill styles",
+      "enum": ["external", "internal", "confidential", "draft"],
+      "default": "external"
+    },
+    "orientation": {
+      "type": "string",
+      "description": "Page orientation",
+      "enum": ["portrait", "landscape"],
+      "default": "portrait"
+    },
+    "has_cover": {
+      "type": "boolean",
+      "description": "Whether the document includes a cover page",
+      "default": false
+    },
+    "compact_header": {
+      "type": "boolean",
+      "description": "Whether the header uses compact (single-row) layout",
+      "default": false
+    },
+    "footer": {
+      "type": "object",
+      "description": "Footer overrides — these take priority over brand defaults",
+      "properties": {
+        "unit_label": { "type": "string" },
+        "show_contact": { "type": "boolean" },
+        "tagline": { "type": "string" },
+        "right_html": { "type": "string" },
+        "brand_name": { "type": "string" },
+        "site": { "type": "string" },
+        "mail": { "type": "string", "format": "email" },
+        "phone": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "document": {
+      "type": "object",
+      "description": "The document content payload",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Document title (required)"
+        },
+        "din": {
+          "type": "string",
+          "description": "Document Identification Number (required)"
+        },
+        "date": {
+          "type": "string",
+          "description": "Document date in YYYY-MM-DD or locale format"
+        },
+        "status": {
+          "type": "string",
+          "description": "Document lifecycle status",
+          "enum": ["draft", "final", "review", "approved", "rejected"]
+        },
+        "reference": {
+          "type": "string",
+          "description": "Optional reference (e.g. ticket or case number)"
+        },
+        "owner_name": {
+          "type": "string",
+          "description": "Owner or responsible person name"
+        },
+        "contact": {
+          "type": "object",
+          "description": "Contact information for the document subject",
+          "properties": {
+            "name": { "type": "string" },
+            "email": { "type": "string", "format": "email" },
+            "phone": { "type": "string" },
+            "company": { "type": "string" }
+          },
+          "required": ["name"],
+          "additionalProperties": false
+        },
+        "content": {
+          "type": "string",
+          "description": "Raw text content (for text sections)"
+        },
+        "content_html": {
+          "type": "string",
+          "description": "Pre-rendered HTML content"
+        },
+        "sections": {
+          "type": "array",
+          "description": "Structured sections — each rendered by the section type's macro",            "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "text", "html", "markdown", "table", "checklist",
+                  "callout", "indicator", "divider", "page_break",
+                  "signature_block"
+                ]
+              },
+              "content": { "type": "string" },
+              "content_html": { "type": "string" },
+              "title": { "type": "string" },
+              "kicker": { "type": "string" },
+              "cols": { "type": "integer", "minimum": 1, "maximum": 12 },
+              "_rendered_html": { "type": "string" },
+              "headers": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "rows": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              },
+              "caption": { "type": "string" },
+              "level": {
+                "type": "string",
+                "enum": ["info", "warning", "error", "success"]
+              },
+              "body": { "type": "string" },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "text": { "type": "string" },
+                    "checked": { "type": "boolean" },
+                    "note": { "type": "string" }
+                  },
+                  "required": ["text"],
+                  "additionalProperties": false
+                }
+              },
+              "label": { "type": "string" },
+              "value": { "type": "string" },
+              "unit": { "type": "string" },
+              "trend": {
+                "type": "string",
+                "enum": ["up", "down", "neutral"]
+              },
+              "note": { "type": "string" },
+              "signers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "role": { "type": "string" },
+                    "date": { "type": "string" }
+                  },
+                  "required": ["name", "role"],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": ["type"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["title", "din", "contact"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["brand", "doc_type", "document"],
+  "additionalProperties": false
+}

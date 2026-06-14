@@ -1,0 +1,18 @@
+{% macro render_indicator(section) %}
+<div class="metric-card">
+  <div class="metric-label">{{ section["label"] }}</div>
+  <div class="metric-value">
+    {{ section["value"] }}
+    {% if section.get("unit") %}
+    <span class="metric-unit">{{ section["unit"] }}</span>
+    {% endif %}
+    {% if section.get("trend") %}
+    <span class="metric-trend trend-{{ section["trend"] }}"
+          title="{{ section["trend"] | capitalize }}">{% if section["trend"] == "up" %}&uarr;{% elif section["trend"] == "down" %}&darr;{% else %}&rarr;{% endif %}</span>
+    {% endif %}
+  </div>
+  {% if section.get("note") %}
+  <div class="metric-note">{{ section["note"] }}</div>
+  {% endif %}
+</div>
+{% endmacro %}

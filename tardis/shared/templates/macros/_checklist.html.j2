@@ -1,0 +1,15 @@
+{% macro render_checklist(section) %}
+<ul class="checklist-list">
+  {% for item in section.get("items", []) %}
+  <li class="checklist-item{% if item.get("checked") %} checked{% endif %}">
+    <span class="checklist-box"></span>
+    <span class="checklist-text">
+      {{ item.get("text", "") }}
+      {% if item.get("note") %}
+      <span class="checklist-note">— {{ item["note"] }}</span>
+      {% endif %}
+    </span>
+  </li>
+  {% endfor %}
+</ul>
+{% endmacro %}

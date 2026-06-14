@@ -1,0 +1,11 @@
+{% macro render_divider(section) %}
+{% if section.get("label") %}
+<div class="section-divider has-label">
+  <hr class="section-divider-line" aria-hidden="true">
+  <span class="section-label">{{ section["label"] }}</span>
+  <hr class="section-divider-line" aria-hidden="true">
+</div>
+{% else %}
+<hr class="section-divider" aria-hidden="true">
+{% endif %}
+{% endmacro %}

@@ -628,7 +628,7 @@ Approach:
 
 ### 10.2 — Header and footer macros
 
-- [ ] **10.2.1** Implement `shared/templates/macros/header.html.j2`.
+- [x] **10.2.1** Implement `shared/templates/macros/header.html.j2`.
       Steps:
       1. The masthead structure (from reference HTML, adapted):
          ```html
@@ -677,7 +677,7 @@ Approach:
       header).
       Depends on: 10.1.5.
 
-- [ ] **10.2.2** Implement `shared/templates/macros/footer.html.j2`.
+- [x] **10.2.2** Implement `shared/templates/macros/footer.html.j2`.
       Steps:
       1. Structure (uses the Chromium `table-footer-group` trick from
          reference `print_chromium.css`):
@@ -731,7 +731,7 @@ Approach:
 
 ### 10.3 — Engine orchestration
 
-- [ ] **10.3.1** Implement `modules/pdf_export/engine.py` —
+- [x] **10.3.1** Implement `modules/pdf_export/engine.py` —
       `validate_document` and `generate_html`.
       Steps:
       1. `validate_document(data)` — delegate to `schema_validator.py`
@@ -769,7 +769,7 @@ Approach:
       classes.
       Depends on: 10.2.2, 10.1.1, 10.1.2, 10.1.4, 10.1.5.
 
-- [ ] **10.3.2** Implement `modules/pdf_export/chromium_printer.py`.
+- [x] **10.3.2** Implement `modules/pdf_export/chromium_printer.py`.
       Steps (per section 7):
       1. Class `ChromiumPrinter(QObject)` with signal
          `print_finished = Signal(bool, str)` (`success`, `output_path`).
@@ -817,7 +817,7 @@ Approach:
       appear (page number placeholder is empty — that's stamped next).
       Depends on: 10.3.1.
 
-- [ ] **10.3.3** Implement `engine.generate_pdf` (full pipeline).
+- [x] **10.3.3** Implement `engine.generate_pdf` (full pipeline).
       Steps:
       1. `generate_pdf(data, brand, output_path, open_after=False) -> NocoResult`:
          a. `html_result = generate_html(data, brand)` — return on failure.

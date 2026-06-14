@@ -1,0 +1,25 @@
+{% macro render_table(section) %}
+<table class="doc-table">
+  {% if section.get("caption") %}
+  <caption class="table-caption">{{ section["caption"] }}</caption>
+  {% endif %}
+  {% if section.get("headers") %}
+  <thead>
+    <tr>
+      {% for header in section["headers"] %}
+      <th class="text-left">{{ header }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  {% endif %}
+  <tbody>
+    {% for row in section.get("rows", []) %}
+    <tr>
+      {% for cell in row %}
+      <td>{{ cell }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endmacro %}

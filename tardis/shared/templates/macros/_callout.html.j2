@@ -1,0 +1,12 @@
+{% macro render_callout(section) %}
+<div class="callout callout-{{ section.get("level", "info") }}">
+  {% if section.get("title") %}
+  <strong>{{ section["title"] }}</strong><br>
+  {% endif %}
+  {% if section.get("body") %}
+  {{ section["body"] | safe }}
+  {% elif section.get("content") %}
+  {{ section["content"] | safe }}
+  {% endif %}
+</div>
+{% endmacro %}
