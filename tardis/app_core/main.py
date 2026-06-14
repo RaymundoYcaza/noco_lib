@@ -16,8 +16,8 @@ from app_core.config import load_tardis_config
 from app_core.logging_setup import setup_logging
 from app_core.main_window import MainWindow
 from app_core.module_registry import discover_and_register
-from app_core.views.module_admin_view import ModuleAdminView
 from app_core.theming import apply_theme
+from app_core.views.settings_view import SettingsView
 
 def main() -> None:
     # Initialize logging first
@@ -43,17 +43,26 @@ def main() -> None:
     # 5. Descubrir y registrar módulos modularmente
     module_info = discover_and_register(window, client)
     
-    # Instanciar y registrar el administrador de módulos
-    admin_view = ModuleAdminView(module_info)
-    window.add_dock_panel(admin_view, "Administrador de módulos", area="bottom")
+    # 6. Crear y registrar la pantalla de Configuración
+    settings_view = SettingsView(config, module_info, client, window)
+    window.register_nav_item(
+        module_id="settings",
+        icon="fa5s.cog",
+        label="Configuración",
+        widget=settings_view,
+        position="bottom",
+    )
     
-    # 6. Aplicar tema antes de mostrar la ventana
+    # 7. Aplicar tema antes de mostrar la ventana
     apply_theme(app, "dark")
     
-    # 6. Mostrar la ventana principal
+    # 8. Restore last active module after all modules are registered
+    window._restore_last_module()
+    
+    # 9. Mostrar la ventana principal
     window.show()
     
-    # 7. Iniciar el bucle de eventos de la aplicación
+    # 10. Iniciar el bucle de eventos de la aplicación
     sys.exit(app.exec())
 
 if __name__ == "__main__":

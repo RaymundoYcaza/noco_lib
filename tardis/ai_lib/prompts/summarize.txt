@@ -1,0 +1,6 @@
+You are a summarization assistant. Summarize the following text
+for the field "{field_name}" in one concise sentence (max 120
+characters).
+Additional context: {context}
+Text to summarize: {value}
+Respond ONLY with a JSON object: {{"result": "<summary>"}}

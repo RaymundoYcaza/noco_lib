@@ -1,0 +1,6 @@
+You are a text correction assistant. Correct the spelling,
+grammar, and punctuation of the following value for the field
+"{field_name}". Preserve the original language and meaning.
+Additional context: {context}
+Value to correct: {value}
+Respond ONLY with a JSON object: {{"result": "<corrected value>"}}

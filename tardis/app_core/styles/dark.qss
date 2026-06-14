@@ -173,6 +173,23 @@ QComboBox QAbstractItemView {
     selection-color: #ffffff;
 }
 
+/* ── NavButton (App Switcher bar) ──────────────────────────── */
+NavButton {
+    background: transparent;
+    border: none;
+    border-left: 3px solid transparent;
+    border-radius: 0;
+}
+
+NavButton:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+NavButton:checked {
+    background: rgba(255, 255, 255, 0.10);
+    border-left: 3px solid #0a66c2;
+}
+
 /* Custom error/success labels */
 QLabel#error-label {
     color: #d9534f;

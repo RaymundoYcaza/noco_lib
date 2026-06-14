@@ -1,1 +1,0 @@
-# Dummy notify test module

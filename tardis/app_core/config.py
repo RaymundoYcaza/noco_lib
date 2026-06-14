@@ -20,6 +20,9 @@ class TardisConfig:
     localmail_table: str   # default "DIR_LOCAL-MAIL"
     user_id: str           # derivado de getpass.getuser(), NO de .env
     mailboxes: list[str]   # parsed from TARDIS_MAILBOXES
+    ai_provider: str       # default "ollama"
+    ai_model: str          # default "gemma3:27b"
+    ai_base_url: str       # default "http://localhost:11434"
 
 def load_tardis_config() -> TardisConfig:
     """
@@ -57,12 +60,20 @@ def load_tardis_config() -> TardisConfig:
     mailboxes_raw = os.environ.get("TARDIS_MAILBOXES", "")
     mailboxes = [m.strip() for m in mailboxes_raw.split(";") if m.strip()]
 
+    # 6. AI configuration
+    ai_provider = os.environ.get("TARDIS_AI_PROVIDER", "ollama")
+    ai_model = os.environ.get("TARDIS_AI_MODEL", "gemma3:27b")
+    ai_base_url = os.environ.get("TARDIS_AI_BASE_URL", "http://localhost:11434")
+
     return TardisConfig(
         noco_base_url=noco_base_url,
         noco_token=noco_token,
         noco_base_id=noco_base_id,
         localmail_table=localmail_table,
         user_id=user_id,
-        mailboxes=mailboxes
+        mailboxes=mailboxes,
+        ai_provider=ai_provider,
+        ai_model=ai_model,
+        ai_base_url=ai_base_url,
     )
 

@@ -49,9 +49,10 @@ def mock_client():
 
 
 def test_register_module(mock_app, mock_client):
-    """Test that register() wires up central three-pane layout, menu actions, etc."""
+    """Test that register() calls register_nav_item, wires up views, and adds menu actions."""
     
-    # We patch the view constructors to track instances and calls, but still run them
+    mock_app.register_nav_item = MagicMock()
+    
     from modules.localmail.views.sidebar_view import SidebarTreeView
     with patch("modules.localmail.module.SidebarTreeView", wraps=SidebarTreeView) as mock_sidebar_cls, \
          patch("modules.localmail.module.ReaderView", wraps=ReaderView) as mock_reader_cls, \
@@ -67,17 +68,22 @@ def test_register_module(mock_app, mock_client):
         mock_sidebar_cls.assert_called_once_with(mock_app, mock_client, ["test_user"])
         mock_reader_cls.assert_called_once_with(mock_app, mock_client)
 
-        # 2. Check setCentralWidget was called on app
-        assert mock_app.setCentralWidget.call_count == 1
-        central_widget = mock_app.setCentralWidget.call_args[0][0]
-        assert isinstance(central_widget, QSplitter)
-        assert central_widget.orientation() == Qt.Horizontal
-        
-        # Splitter has 3 widgets: sidebar, center container, reader
-        assert central_widget.count() == 3
-        assert isinstance(central_widget.widget(0), SidebarTreeView)
-        assert isinstance(central_widget.widget(1), QWidget)
-        assert isinstance(central_widget.widget(2), ReaderView)
+        # 2. Check register_nav_item was called with correct params
+        assert mock_app.register_nav_item.call_count == 1
+        nav_args = mock_app.register_nav_item.call_args[1]
+        assert nav_args["module_id"] == "localmail"
+        assert nav_args["icon"] == "fa5s.envelope"
+        assert nav_args["position"] == "top"
+        assert nav_args["toolbar"] is None
+        screen = nav_args["widget"]
+        # The screen wraps the splitter in a LocalMailScreen
+        from modules.localmail.module import LocalMailScreen
+        assert isinstance(screen, LocalMailScreen)
+        assert isinstance(screen._splitter, QSplitter)
+        assert screen._splitter.orientation() == Qt.Horizontal
+        assert screen._splitter.count() == 3
+        assert isinstance(screen._splitter.widget(0), SidebarTreeView)
+        assert isinstance(screen._splitter.widget(2), ReaderView)
 
         # 3. Check menu actions were registered (Only "Redactar" action under "LocalMail")
         assert mock_app.add_menu_action.call_count == 1

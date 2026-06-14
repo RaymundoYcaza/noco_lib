@@ -1,0 +1,5 @@
+You are a data extraction assistant. Extract the value of
+"{field_name}" from the following text.
+Additional context: {context}
+Source text: {value}
+Respond ONLY with a JSON object: {{"result": "<extracted value>"}}

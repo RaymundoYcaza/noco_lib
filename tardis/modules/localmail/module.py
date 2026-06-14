@@ -13,81 +13,145 @@ from modules.localmail.views.filter_bar import FilterBarView
 from modules.localmail.views.reader_view import ReaderView
 from modules.localmail.views.composer_view import ComposerView
 
-def register(app: MainWindow, client: NocoClient) -> None:
+import logging
+
+logger = logging.getLogger("tardis")
+
+
+class LocalMailScreen(QWidget):
+    """Full-screen widget for the LocalMail module.
+
+    Contains the three-pane layout: folder sidebar (left), email list
+    + filter bar (center), and reader (right), arranged in a horizontal
+    ``QSplitter``.
+
+    This widget is registered via ``register_nav_item`` and replaces
+    the former ``setCentralWidget`` pattern.
     """
-    Registers the LocalMail module components inside the Tardis main window using a three-pane layout.
-    """
-    # 1. Obtain user identity from configuration
-    user_id = app.config.user_id if getattr(app, "config", None) else "unknown"
-    mailboxes = app.config.mailboxes if getattr(app, "config", None) else []
 
-    # 2. Create the left Sidebar view and save reference
-    app.sidebar_view = SidebarTreeView(app, client, mailboxes)
+    def __init__(
+        self,
+        app: MainWindow,
+        client: NocoClient,
+        mailboxes: list[str],
+        parent: QWidget | None = None,
+    ) -> None:
+        super().__init__(parent)
+        self._app = app
+        self._client = client
+        self._mailboxes = mailboxes
 
-    # 3. Create the center layout (filter bar + email list view)
-    center_widget = QWidget()
-    center_layout = QVBoxLayout(center_widget)
-    center_layout.setContentsMargins(0, 0, 0, 0)
-    center_layout.setSpacing(8)
+        self._build_ui()
+        self._wire_signals()
+        self._restore_last_node()
 
-    app.filter_bar_view = FilterBarView(app)
-    app.email_list_view = EmailListView(app, client)
-    
-    # Wire filter bar changes to email list filtering
-    app.filter_bar_view.filter_changed.connect(app.email_list_view.apply_filter)
-    
-    center_layout.addWidget(app.filter_bar_view)
-    center_layout.addWidget(app.email_list_view)
+    # ── UI construction ──────────────────────────────────────────────
 
-    # 4. Create the right Reader view
-    app.reader_view = ReaderView(app, client)
+    def _build_ui(self) -> None:
+        # 1. Sidebar
+        self._sidebar_view = SidebarTreeView(self._app, self._client, self._mailboxes)
+        self._app.sidebar_view = self._sidebar_view  # keep for backward compat
 
-    # 5. Create horizontal QSplitter to hold Left, Center, and Right panes
-    splitter = QSplitter(Qt.Horizontal)
-    splitter.addWidget(app.sidebar_view)
-    splitter.addWidget(center_widget)
-    splitter.addWidget(app.reader_view)
-    
-    app.three_pane_splitter = splitter
+        # 2. Center: filter bar + email list
+        center_widget = QWidget()
+        center_layout = QVBoxLayout(center_widget)
+        center_layout.setContentsMargins(0, 0, 0, 0)
+        center_layout.setSpacing(8)
 
-    # Restore splitter sizes/state if saved
-    settings = QSettings("Tardis", "Tardis")
-    state = settings.value("three_pane/splitter_sizes")
-    if state is not None:
-        splitter.restoreState(state)
-    else:
-        # Initial proportions roughly [1, 2, 2]
-        splitter.setSizes([200, 412, 412])
+        self._filter_bar = FilterBarView(self._app)
+        self._app.filter_bar_view = self._filter_bar
 
-    # 6. Register three-pane widget as central widget of MainWindow
-    app.setCentralWidget(splitter)
+        self._email_list = EmailListView(self._app, self._client)
+        self._app.email_list_view = self._email_list
 
-    # 7. Wire sidebar -> list
-    def on_node_selected(node) -> None:
+        center_layout.addWidget(self._filter_bar)
+        center_layout.addWidget(self._email_list)
+
+        # 3. Reader
+        self._reader = ReaderView(self._app, self._client)
+        self._app.reader_view = self._reader
+
+        # 4. Horizontal splitter
+        self._splitter = QSplitter(Qt.Horizontal)
+        self._splitter.addWidget(self._sidebar_view)
+        self._splitter.addWidget(center_widget)
+        self._splitter.addWidget(self._reader)
+        self._app.three_pane_splitter = self._splitter
+
+        # Restore splitter sizes
+        settings = QSettings("Tardis", "Tardis")
+        state = settings.value("three_pane/splitter_sizes")
+        if state is not None:
+            self._splitter.restoreState(state)
+        else:
+            self._splitter.setSizes([200, 412, 412])
+
+        # Main layout for this screen
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addWidget(self._splitter)
+
+    # ── Signal wiring ────────────────────────────────────────────────
+
+    def _wire_signals(self) -> None:
+        # Filter bar → email list
+        self._filter_bar.filter_changed.connect(self._email_list.apply_filter)
+
+        # Sidebar node selected → load folder
+        self._sidebar_view.node_selected.connect(self._on_node_selected)
+
+        # Email selected → show in reader
+        self._email_list.email_selected.connect(self._reader.show_email)
+
+        # Reader marks email as read → update list row
+        self._reader.email_read.connect(self._email_list.mark_row_as_read)
+
+    def _on_node_selected(self, node) -> None:
         if node.folder is None:
             return
-        app.email_list_view.load(client, node.mailboxes, node.folder)
-        # Store last selected node ID in QSettings
-        local_settings = QSettings("Tardis", "Tardis")
-        local_settings.setValue("three_pane/last_selected_node", node.id)
+        self._email_list.load(self._client, node.mailboxes, node.folder)
+        # Persist selection
+        settings = QSettings("Tardis", "Tardis")
+        settings.setValue("three_pane/last_selected_node", node.id)
 
-    app.sidebar_view.node_selected.connect(on_node_selected)
+    def _restore_last_node(self) -> None:
+        settings = QSettings("Tardis", "Tardis")
+        last_id = settings.value("three_pane/last_selected_node")
+        restored = False
+        if last_id:
+            restored = self._sidebar_view.select_node_by_id(last_id)
+        if not restored:
+            self._sidebar_view.select_node_by_id("all:inbox")
 
-    # Wire list -> reader (single click selection)
-    app.email_list_view.email_selected.connect(app.reader_view.show_email)
 
-    # Wire reader -> list (mark as read update in-place)
-    app.reader_view.email_read.connect(app.email_list_view.mark_row_as_read)
+# ═══════════════════════════════════════════════════════════════════════
+#  Module entry point
+# ═══════════════════════════════════════════════════════════════════════
 
-    # 8. Restore last selected node, default to All Mailboxes > Inbox (all:inbox)
-    last_selected_node_id = settings.value("three_pane/last_selected_node")
-    node_restored = False
-    if last_selected_node_id:
-        node_restored = app.sidebar_view.select_node_by_id(last_selected_node_id)
-    if not node_restored:
-        app.sidebar_view.select_node_by_id("all:inbox")
 
-    # 9. Add menu action for composing a new mail (floating window)
+def register(app: MainWindow, client: NocoClient) -> None:
+    """Register the LocalMail module as a navigation item.
+
+    Creates the three-pane screen and registers it with the App Switcher
+    bar at the ``"top"`` position. All menu actions are preserved.
+    """
+    mailboxes = app.config.mailboxes if getattr(app, "config", None) else []
+
+    # 1. Build the full-screen LocalMail widget
+    screen = LocalMailScreen(app, client, mailboxes)
+
+    # 2. Register as a nav item (always first, top position)
+    app.register_nav_item(
+        module_id="localmail",
+        icon="fa5s.envelope",
+        label="LocalMail",
+        widget=screen,
+        toolbar=None,       # Phase 6: will be the QToolBar
+        position="top",     # Always visible at the top of the nav bar
+    )
+
+    # 3. Menu actions (unchanged)
     def open_composer() -> None:
         composer = ComposerView(app, client, mailboxes)
         dock = app.add_floating_window(composer, "Redactar correo")
@@ -96,3 +160,5 @@ def register(app: MainWindow, client: NocoClient) -> None:
         app._composer_windows.append((composer, dock))
 
     app.add_menu_action("LocalMail", "Redactar", open_composer)
+
+    logger.info("LocalMail module registered (nav item)")

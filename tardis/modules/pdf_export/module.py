@@ -1,9 +1,11 @@
 """
-module.py — PDF Export UI panel for Tardis.
+module.py — PDF Export UI screen for Tardis.
 
-Provides a dock panel with:
+Registers as a full-screen nav item (``register_nav_item``) with the
+App Switcher bar. Provides:
 - Brand selector (bisstox / plyson / inorizonti)
 - Doc type selector (all 10 types from document_presentation.json)
+- Audience selector and layout options
 - JSON editor for the document payload
 - "Vista previa HTML" button → renders HTML in a floating QWebEngineView
 - "Generar PDF" button → runs the full pipeline, opens the result
@@ -25,13 +27,16 @@ from pathlib import Path
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QFormLayout,
     QHBoxLayout,
     QLabel,
     QPlainTextEdit,
     QPushButton,
+    QScrollArea,
     QVBoxLayout,
     QWidget,
 )
+from PySide6.QtCore import Qt
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
 logger = logging.getLogger("tardis")
@@ -63,14 +68,19 @@ _DOC_TYPES = _load_doc_types()
 
 
 class PdfExportPanel(QWidget):
-    """Dock panel for interactive PDF generation."""
+    """Full-screen panel for interactive PDF generation.
+
+    Now occupies the full central area (not a narrow dock panel).
+    Uses a centered layout with a maximum-width container so controls
+    are comfortable on wide screens.
+    """
 
     def __init__(
         self,
         app: MainWindow,
         client: NocoClient,
         parent: QWidget | None = None,
-    ):
+    ) -> None:
         super().__init__(parent)
         self._app = app
         self._client = client
@@ -83,51 +93,89 @@ class PdfExportPanel(QWidget):
     # ── UI construction ────────────────────────────────────────────
 
     def _build_ui(self) -> None:
-        layout = QVBoxLayout(self)
-        layout.setSpacing(8)
+        # Root layout: fill the full central area
+        root_layout = QVBoxLayout(self)
+        root_layout.setContentsMargins(0, 0, 0, 0)
 
-        # ── Brand selector ──
-        layout.addWidget(QLabel("Marca:"))
+        # Scroll area so content is accessible on short screens
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QScrollArea.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        # Centered container with max-width
+        container = QWidget()
+        container.setMaximumWidth(720)
+        container_layout = QVBoxLayout(container)
+        container_layout.setSpacing(12)
+        container_layout.setContentsMargins(32, 24, 32, 24)
+
+        # ── Title ──
+        title = QLabel("Generación de PDF")
+        title.setStyleSheet("font-size: 18px; font-weight: bold; padding-bottom: 8px;")
+        container_layout.addWidget(title)
+
+        # ── Two-column form row (brand + doc type) ──
+        row1 = QHBoxLayout()
+        row1.setSpacing(16)
+
+        brand_group = QVBoxLayout()
+        brand_group.addWidget(QLabel("Marca:"))
         self._brand_combo = QComboBox()
         self._brand_combo.addItems(_BRANDS)
         self._brand_combo.setCurrentIndex(0)
-        layout.addWidget(self._brand_combo)
+        brand_group.addWidget(self._brand_combo)
+        row1.addLayout(brand_group)
 
-        # ── Doc type selector ──
-        layout.addWidget(QLabel("Tipo de documento:"))
+        doc_type_group = QVBoxLayout()
+        doc_type_group.addWidget(QLabel("Tipo de documento:"))
         self._doc_type_combo = QComboBox()
         self._doc_type_combo.addItems(_DOC_TYPES)
         self._doc_type_combo.setCurrentIndex(
             _DOC_TYPES.index("letter") if "letter" in _DOC_TYPES else 0
         )
-        layout.addWidget(self._doc_type_combo)
+        doc_type_group.addWidget(self._doc_type_combo)
+        row1.addLayout(doc_type_group)
 
-        # ── Audience selector ──
-        layout.addWidget(QLabel("Audiencia:"))
+        container_layout.addLayout(row1)
+
+        # ── Second row (audience + options) ──
+        row2 = QHBoxLayout()
+        row2.setSpacing(16)
+
+        audience_group = QVBoxLayout()
+        audience_group.addWidget(QLabel("Audiencia:"))
         self._audience_combo = QComboBox()
         self._audience_combo.addItems(["external", "internal", "confidential", "draft"])
         self._audience_combo.setCurrentIndex(0)
-        layout.addWidget(self._audience_combo)
+        audience_group.addWidget(self._audience_combo)
+        row2.addLayout(audience_group)
 
-        # ── Options row ──
-        options_layout = QHBoxLayout()
+        options_group = QVBoxLayout()
+        options_group.addWidget(QLabel("Opciones:"))
+        options_row = QHBoxLayout()
         self._cover_check = QCheckBox("Portada")
         self._cover_check.setChecked(False)
-        options_layout.addWidget(self._cover_check)
+        options_row.addWidget(self._cover_check)
         self._compact_check = QCheckBox("Compacto")
         self._compact_check.setChecked(False)
-        options_layout.addWidget(self._compact_check)
-        layout.addLayout(options_layout)
+        options_row.addWidget(self._compact_check)
+        options_group.addLayout(options_row)
+        row2.addLayout(options_group)
+
+        container_layout.addLayout(row2)
 
         # ── JSON editor ──
-        layout.addWidget(QLabel("JSON del documento:"))
+        container_layout.addWidget(QLabel("JSON del documento:"))
         self._json_editor = QPlainTextEdit()
         self._json_editor.setPlaceholderText(
             '{\n  "title": "Ejemplo",\n  "din": "DIN-001",\n  "contact": {\n    "name": "Cliente"\n  },\n  "sections": []\n}'
         )
-        self._json_editor.setMinimumHeight(180)
-        self._json_editor.setStyleSheet("font-family: 'Courier New', monospace; font-size: 11px;")
-        layout.addWidget(self._json_editor)
+        self._json_editor.setMinimumHeight(200)
+        self._json_editor.setStyleSheet(
+            "font-family: 'Courier New', monospace; font-size: 11px;"
+        )
+        container_layout.addWidget(self._json_editor)
 
         # ── Fill with example JSON ──
         self._load_example_json()
@@ -143,15 +191,21 @@ class PdfExportPanel(QWidget):
         self._generate_btn.clicked.connect(self._on_generate_pdf)
         btn_layout.addWidget(self._generate_btn)
 
-        layout.addLayout(btn_layout)
+        container_layout.addLayout(btn_layout)
 
         # ── Status line ──
         self._status_label = QLabel("")
         self._status_label.setWordWrap(True)
-        self._status_label.setStyleSheet("padding: 4px; border-top: 1px solid #ccc;")
-        layout.addWidget(self._status_label)
+        self._status_label.setStyleSheet(
+            "padding: 6px; border-top: 1px solid #3a3a3a; color: #a0a0a0;"
+        )
+        container_layout.addWidget(self._status_label)
 
-        layout.addStretch()
+        container_layout.addStretch()
+
+        # Set container as scroll area widget
+        scroll.setWidget(container)
+        root_layout.addWidget(scroll)
 
     def _load_example_json(self) -> None:
         """Populate the JSON editor with a minimal working example."""
@@ -164,11 +218,16 @@ class PdfExportPanel(QWidget):
             "sections": [
                 {
                     "type": "text",
-                    "content": "Este es un documento de prueba generado desde el panel PDF Export.",
+                    "content": (
+                        "Este es un documento de prueba generado "
+                        "desde el panel PDF Export."
+                    ),
                 },
             ],
         }
-        self._json_editor.setPlainText(json.dumps(example, indent=2, ensure_ascii=False))
+        self._json_editor.setPlainText(
+            json.dumps(example, indent=2, ensure_ascii=False)
+        )
 
     # ── Helpers ────────────────────────────────────────────────────
 
@@ -182,7 +241,7 @@ class PdfExportPanel(QWidget):
     def _build_data_dict(self) -> dict | None:
         """Parse the JSON editor contents and build a full data dict.
 
-        Returns None and shows an error toast if parsing fails.
+        Returns **None** and shows an error toast if parsing fails.
         """
         raw = self._json_editor.toPlainText().strip()
         if not raw:
@@ -196,7 +255,6 @@ class PdfExportPanel(QWidget):
             self._status_label.setText(f"Error JSON: {exc}")
             return None
 
-        # Validate that document sub-dict has the required fields
         if not isinstance(document, dict):
             self._app.show_notification("El JSON debe ser un objeto (dict).", "error")
             return None
@@ -228,8 +286,7 @@ class PdfExportPanel(QWidget):
         if data is None:
             return
 
-        # Import here to avoid circular imports at module level
-        from .engine import generate_html
+        from .engine import generate_html  # avoid circular import
 
         result = generate_html(data, data["brand"])
 
@@ -237,12 +294,18 @@ class PdfExportPanel(QWidget):
             html = result.data["html"]
             din = data["document"].get("din", "documento")
             self._show_preview_window(html, f"Vista previa: {din}")
-            self._status_label.setText(f"OK: Vista previa generada ({len(html)} chars)")
-            self._app.show_notification("Vista previa HTML generada.", "success")
+            self._status_label.setText(
+                f"OK: Vista previa generada ({len(html)} chars)"
+            )
+            self._app.show_notification(
+                "Vista previa HTML generada.", "success"
+            )
         else:
             msg = "; ".join(result.errors) if result.errors else "Error desconocido"
             self._status_label.setText(f"Error: {msg}")
-            self._app.show_notification(f"Error al generar vista previa: {msg}", "error")
+            self._app.show_notification(
+                f"Error al generar vista previa: {msg}", "error"
+            )
 
     def _on_generate_pdf(self) -> None:
         """Handle 'Generar PDF' button click."""
@@ -259,10 +322,8 @@ class PdfExportPanel(QWidget):
         downloads = Path.home() / "Downloads"
         output_path = str(downloads / filename)
 
-        # Ensure downloads directory exists
         downloads.mkdir(parents=True, exist_ok=True)
 
-        # Set up ChromiumPrinter with a hidden view
         from .chromium_printer import ChromiumPrinter
 
         printer = ChromiumPrinter()
@@ -270,8 +331,6 @@ class PdfExportPanel(QWidget):
 
         from .engine import generate_pdf
 
-        # Run the full pipeline (synchronous on main thread, drives internal QEventLoop).
-        # generate_pdf calls generate_html -> validate_document internally.
         result = generate_pdf(data, data["brand"], output_path, printer, open_after=True)
 
         if result.success:
@@ -285,27 +344,40 @@ class PdfExportPanel(QWidget):
         else:
             msg = "; ".join(result.errors) if result.errors else "Error desconocido"
             self._status_label.setText(f"Error: {msg}")
-            self._app.show_notification(f"Error al generar PDF: {msg}", "error")
+            self._app.show_notification(
+                f"Error al generar PDF: {msg}", "error"
+            )
 
 
 # ═══════════════════════════════════════════════════════════════════
-#  Module entry point (called by module_registry during app startup)
+#  Module entry point
 # ═══════════════════════════════════════════════════════════════════
+
 
 def register(app: MainWindow, client: NocoClient) -> None:
-    """Register the PDF Export panel as a dock widget and menu action.
+    """Register the PDF Export screen as a navigation item.
 
     Args:
         app: The Tardis ``MainWindow`` instance.
-        client: The ``NocoClient`` instance (unused by this module but
-                required by the module contract).
+        client: The ``NocoClient`` instance (required by module contract).
     """
     panel = PdfExportPanel(app, client)
 
-    # Register as a dock panel on the right side
-    app.add_dock_panel(panel, "PDF Export", area="right")
+    # Register as a nav item in the scrollable middle zone
+    app.register_nav_item(
+        module_id="pdf_export",
+        icon="fa5s.file-pdf",
+        label="PDF Export",
+        widget=panel,
+        position="middle",
+    )
 
-    # Register a menu action under Herramientas
-    app.add_menu_action("Herramientas", "PDF Export", lambda: panel.show())
+    # Menu action under Herramientas
+    # Activates the PDF Export screen via the nav system
+    app.add_menu_action(
+        "Herramientas",
+        "PDF Export",
+        lambda: app._activate_module("pdf_export"),
+    )
 
-    logger.info("PDF Export module registered")
+    logger.info("PDF Export module registered (nav item)")

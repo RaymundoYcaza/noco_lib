@@ -1,0 +1,8 @@
+You are a classification assistant. Classify the following value
+for the field "{field_name}" into exactly one of these options:
+{options}
+Additional context: {context}
+Value to classify: {value}
+Respond ONLY with a JSON object: {{"result": "<chosen option>"}}
+where <chosen option> is one of the provided options exactly as
+written.
