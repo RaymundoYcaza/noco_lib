@@ -1,0 +1,20 @@
+<header class="masthead">
+  <div class="masthead-content">
+    <div class="brand-card" aria-label="Logo de marca">
+      <div class="logo-stack">
+        {{ brand_logo_svg | safe }}
+      </div>
+    </div>
+    <div class="document-heading header-right-block">
+      <div class="header-row header-row-1{% if not header_row1 %} header-row-empty{% endif %}">
+        {{ header_row1 or "" }}
+      </div>
+      <div class="header-row header-row-2{% if not header_row2 %} header-row-empty{% endif %}">
+        {{ header_row2 or "" }}
+      </div>
+      <div class="header-row header-row-3{% if not header_row3 %} header-row-empty{% endif %}">
+        {{ header_row3 or "" }}
+      </div>
+    </div>
+  </div>
+</header>

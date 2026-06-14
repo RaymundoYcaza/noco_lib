@@ -1,0 +1,9 @@
+<div class="cover-page">
+  {% if doc.get("cover_kicker") %}
+  <div class="cover-kicker">{{ doc["cover_kicker"] }}</div>
+  {% endif %}
+  <h1 class="cover-title">{{ doc.get("title", "") }}</h1>
+  {% if doc.get("cover_summary") %}
+  <div class="cover-summary">{{ doc["cover_summary"] }}</div>
+  {% endif %}
+</div>

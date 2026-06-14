@@ -1,0 +1,52 @@
+<div class="meta-band">
+  <div class="meta-grid">
+    {% if doc.get("din") %}
+    <div class="meta-field">
+      <div class="field-label">DIN</div>
+      <div class="field-value document-code-inline">
+        <span class="document-code-number">{{ doc["din"] }}</span>
+      </div>
+    </div>
+    {% endif %}
+    {% if doc.get("date") %}
+    <div class="meta-field">
+      <div class="field-label">Fecha</div>
+      <div class="field-value">{{ doc["date"] }}</div>
+    </div>
+    {% endif %}
+    {% if doc.get("status") %}
+    <div class="meta-field">
+      <div class="field-label">Estado</div>
+      <div class="field-value">
+        <span class="status-pill-meta">{{ doc["status"] }}</span>
+      </div>
+    </div>
+    {% endif %}
+    {% if audience %}
+    <div class="meta-field">
+      <div class="field-label">Audiencia</div>
+      <div class="field-value">
+        <span class="classification">{{ audience | capitalize }}</span>
+      </div>
+    </div>
+    {% endif %}
+    {% if doc.get("reference") %}
+    <div class="meta-field">
+      <div class="field-label">Referencia</div>
+      <div class="field-value field-muted">{{ doc["reference"] }}</div>
+    </div>
+    {% endif %}
+    {% if doc.get("owner_name") %}
+    <div class="meta-field">
+      <div class="field-label">Responsable</div>
+      <div class="field-value">{{ doc["owner_name"] }}</div>
+    </div>
+    {% endif %}
+    {% if doc.get("contact") and doc["contact"].get("name") %}
+    <div class="meta-field">
+      <div class="field-label">Contacto</div>
+      <div class="field-value">{{ doc["contact"]["name"] }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>

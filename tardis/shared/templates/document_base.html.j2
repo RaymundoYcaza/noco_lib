@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es-EC">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ doc.get("title", "Documento") }} | {{ brand.get("display_name", brand.get("name", "")) }}</title>
+  <style>
+    {{ base_css | safe }}
+    {{ grid_css | safe }}
+    {{ components_css | safe }}
+    {{ print_css | safe }}
+    {{ brand_css | safe }}
+  </style>
+</head>
+<body class="doc brand-{{ brand.get("name", "") }} orient-{{ orientation }}
+             audience-{{ audience }}
+             doc-{{ doc_type }}
+             {% if compact_header %}compact-header{% endif %}
+             {% if has_cover %}has-cover{% endif %}
+             {% if not show_meta_band %}no-meta-band{% endif %}"
+      data-brand="{{ brand.get("name", "") }}"
+      data-doc-type="{{ doc_type }}">
+
+  <div class="print-hint no-print">
+    <span><strong>{{ brand.get("display_name", "") }} document factory:</strong>
+      {{ doc_type_meta.get("legend", doc_type) }} &middot; {{ doc.get("title", "") }}</span>
+    <span><code>Ctrl + P</code> &rarr; A4 &rarr; graficos de fondo activos.</span>
+  </div>
+
+  <main class="page">
+    <div class="running-header">
+      {{ doc.get("din", "") }} &middot; {{ doc.get("title", "") }}
+    </div>
+
+    {# HEADER #}
+    {% include "macros/header.html.j2" %}
+
+    {# FOOTER (Chromium table-footer-group trick) #}
+    {% include "macros/footer.html.j2" %}
+
+    {# BODY #}
+    <div class="page-body">
+      {% if has_cover %}{% include "macros/cover.html.j2" %}{% endif %}
+      {% if show_meta_band %}{% include "macros/meta_band.html.j2" %}{% endif %}
+
+      {# Letter reference line (compact inline reference for doc types without meta-band) #}
+      {% if not show_meta_band and (doc_type == "letter" or doc_type == "communication") %}
+      <div class="letter-reference-line" aria-label="Referencia documental compacta">
+        <span>{{ doc.get("din", "") }}</span>
+        {% if doc.get("date") %}
+        <span class="letter-reference-separator" aria-hidden="true">&middot;</span>
+        <span>{{ doc["date"] }}</span>
+        {% endif %}
+        {% if doc.get("reference") %}
+        <span class="letter-reference-separator" aria-hidden="true">&middot;</span>
+        <span>{{ doc["reference"] }}</span>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <div class="document-flow">
+        {% if doc_type in ("letter", "communication") and not show_meta_band %}
+        <div class="letter-shell">
+          <div class="panel letter-panel">
+            {{ sections_html | safe }}
+          </div>
+        </div>
+        {% else %}
+        {{ sections_html | safe }}
+        {% endif %}
+      </div>
+    </div>
+  </main>
+</body>
+</html>

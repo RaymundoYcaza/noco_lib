@@ -450,7 +450,7 @@ Approach:
 
 ### 10.1 — Core engine components
 
-- [ ] **10.1.1** Implement `modules/pdf_export/markdown_renderer.py`.
+- [x] **10.1.1** Implement `modules/pdf_export/markdown_renderer.py`.
       Steps:
       1. `render_markdown(text: str) -> str` using `mistune.create_markdown()`
          with plugins `["strikethrough"]`. Returns an HTML string.
@@ -462,7 +462,7 @@ Approach:
       `scripts/test_markdown.py` script and print the output.
       Depends on: 10.0.1.
 
-- [ ] **10.1.2** Implement `modules/pdf_export/schema_validator.py`.
+- [x] **10.1.2** Implement `modules/pdf_export/schema_validator.py`.
       Steps:
       1. Load `document_schema.json` from
          `shared/schemas/document_schema.json` (copy the file there from
@@ -480,7 +480,7 @@ Approach:
       errors (missing required fields).
       Depends on: 10.0.2.
 
-- [ ] **10.1.3** Implement `modules/pdf_export/footer_stamper.py`.
+- [x] **10.1.3** Implement `modules/pdf_export/footer_stamper.py`.
       Steps:
       1. `stamp_page_numbers(input_path: str, output_path: str,
          brand_json: dict, footer_data: dict) -> None`:
@@ -521,7 +521,7 @@ Approach:
       "Página 3 de 3" at the bottom center of each page.
       Depends on: 10.0.1.
 
-- [ ] **10.1.4** Implement Jinja2 template macros in
+- [x] **10.1.4** Implement Jinja2 template macros in
       `shared/templates/macros/components.html.j2`.
       Steps: implement one Jinja2 macro per component type from section
       2.7. Each macro receives a `section` dict. Example structure:
@@ -564,7 +564,7 @@ Approach:
       HTML string contains the expected class names and structure.
       Depends on: 10.0.5.
 
-- [ ] **10.1.5** Implement `shared/templates/document_base.html.j2` —
+- [x] **10.1.5** Implement `shared/templates/document_base.html.j2` —
       the master Jinja2 template.
       Steps:
       1. Structure (mirrors the reference HTML exactly):
