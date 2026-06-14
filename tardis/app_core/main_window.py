@@ -24,22 +24,57 @@ class FloatingDockWidget(QtAds.CDockWidget):
     def __init__(self, dock_manager, title: str, parent: QWidget | None = None):
         super().__init__(dock_manager, title, parent)
         self.title_str = title
+        self._is_closing = False
+        # Enable custom close handling to intercept close requests
+        self.setFeature(QtAds.CDockWidget.CustomCloseHandling, True)
+        self.closeRequested.connect(self.on_close_requested)
+
+    def on_close_requested(self) -> None:
+        if self._is_closing:
+            return
+        self._is_closing = True
+        try:
+            if self.widget():
+                if not self.widget().close():
+                    self._is_closing = False
+                    return
+            
+            # Save geometry
+            settings = QSettings("Tardis", "Tardis")
+            container = self.floatingDockContainer()
+            key = "floating/Compose/geometry" if self.title_str == "Redactar correo" else f"floating/{self.title_str}/geometry"
+            if container:
+                settings.setValue(key, container.saveGeometry())
+            else:
+                settings.setValue(key, self.saveGeometry())
+                
+            self.closeDockWidget()
+        finally:
+            self._is_closing = False
 
     def closeEvent(self, event):
-        # Propagate close to the child widget first, so its closeEvent is called.
-        # If the child widget ignores/rejects the close, we ignore this event.
-        if self.widget():
-            if not self.widget().close():
-                event.ignore()
-                return
+        if self._is_closing:
+            super().closeEvent(event)
+            return
+            
+        self._is_closing = True
+        try:
+            if self.widget():
+                if not self.widget().close():
+                    event.ignore()
+                    self._is_closing = False
+                    return
                 
-        settings = QSettings("Tardis", "Tardis")
-        container = self.floatingDockContainer()
-        if container:
-            settings.setValue(f"floating/{self.title_str}/geometry", container.saveGeometry())
-        else:
-            settings.setValue(f"floating/{self.title_str}/geometry", self.saveGeometry())
-        super().closeEvent(event)
+            settings = QSettings("Tardis", "Tardis")
+            container = self.floatingDockContainer()
+            key = "floating/Compose/geometry" if self.title_str == "Redactar correo" else f"floating/{self.title_str}/geometry"
+            if container:
+                settings.setValue(key, container.saveGeometry())
+            else:
+                settings.setValue(key, self.saveGeometry())
+            super().closeEvent(event)
+        finally:
+            self._is_closing = False
 
 
 class MainWindow(QMainWindow):
@@ -121,13 +156,22 @@ class MainWindow(QMainWindow):
         
         # Restore geometry if it exists
         settings = QSettings("Tardis", "Tardis")
-        geom = settings.value(f"floating/{title}/geometry")
+        key = "floating/Compose/geometry" if title == "Redactar correo" else f"floating/{title}/geometry"
+        geom = settings.value(key)
         if geom is not None:
             container = dock_widget.floatingDockContainer()
             if container:
                 container.restoreGeometry(geom)
             else:
                 dock_widget.restoreGeometry(geom)
+                
+            # Also restore on the next event loop iteration when container is fully ready
+            from PySide6.QtCore import QTimer
+            def restore_deferred():
+                c = dock_widget.floatingDockContainer()
+                if c:
+                    c.restoreGeometry(geom)
+            QTimer.singleShot(0, restore_deferred)
                 
         return dock_widget
 

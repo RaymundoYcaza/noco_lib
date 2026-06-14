@@ -572,7 +572,7 @@ everything downstream depends on having visible error logs.
 
 ### 9.5 — Composer fixes
 
-- [ ] **9.5.1** Fix Composer close-on-success (Finding E).
+- [x] **9.5.1** Fix Composer close-on-success (Finding E).
       Steps:
       1. In `ComposerView._on_sent(result)`: if `result.success`, call
          `self.close()` (or the parent floating window's close) AFTER
@@ -588,7 +588,7 @@ everything downstream depends on having visible error logs.
       window closes automatically, form does NOT remain populated.
       Depends on: 9.0.4, 9.3.3.
 
-- [ ] **9.5.2** Fix Composer discard confirmation + geometry persistence
+- [x] **9.5.2** Fix Composer discard confirmation + geometry persistence
       (Finding G).
       Steps:
       1. Override `closeEvent(self, event)` in the Composer's floating
@@ -620,7 +620,7 @@ everything downstream depends on having visible error logs.
 
 ### 9.6 — Final integration checkpoint
 
-- [ ] **9.6.1** **CHECKPOINT FINAL (Phase 3)**: full end-to-end pass:
+- [x] **9.6.1** **CHECKPOINT FINAL (Phase 3)**: full end-to-end pass:
       1. Launch Tardis — no console/log errors (9.0.x), three-pane layout
          visible, last-selected node restored (or "All Mailboxes > Inbox"
          on first run).
@@ -651,7 +651,7 @@ everything downstream depends on having visible error logs.
           documented even if unused.
       Depends on: 9.5.2, 9.4.2, 9.3.3.
 
-- [ ] **9.6.2** Update `modules/localmail/README.md` and create
+- [x] **9.6.2** Update `modules/localmail/README.md` and create
       `app_core/EXTENSION_POINTS.md` summarizing, for future module
       authors:
       - `MainWindow.add_dock_panel/add_floating_window/add_menu_action/

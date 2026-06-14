@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QTextEdit, QComboBox, QPushButton, QMessageBox
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSettings
 
 # Add paths to sys.path
 tardis_dir = Path(__file__).resolve().parent.parent.parent.parent
@@ -26,7 +26,14 @@ class ComposerView(QWidget):
         self.main_window = main_window
         self.client = client
         self.mailboxes = mailboxes
+        self._sent_successfully = False
         self._init_ui()
+
+        # Restablecer geometría si existe
+        settings = QSettings("Tardis", "Tardis")
+        geom = settings.value("floating/Compose/geometry")
+        if geom is not None:
+            self.restoreGeometry(geom)
 
     def _init_ui(self) -> None:
         layout = QVBoxLayout(self)
@@ -233,7 +240,9 @@ class ComposerView(QWidget):
 
             self.error_label.setVisible(False)
             if hasattr(self.main_window, "show_notification"):
-                self.main_window.show_notification("Correo enviado", "info")
+                self.main_window.show_notification("Email sent", "success")
+
+            self._sent_successfully = True
 
             # Clear the form
             self.to_input.clear()
@@ -252,6 +261,19 @@ class ComposerView(QWidget):
                     parent.close()
                     break
                 parent = parent.parent()
+
+            # Refresh list view if currently selected node is sent or inbox
+            if hasattr(self.main_window, "sidebar_view") and self.main_window.sidebar_view:
+                current_item = self.main_window.sidebar_view.currentItem()
+                if current_item:
+                    node = current_item.data(0, Qt.UserRole + 1)
+                    if node and node.folder in ["sent", "inbox"]:
+                        if hasattr(self.main_window, "email_list_view") and self.main_window.email_list_view:
+                            self.main_window.email_list_view.load(
+                                self.client,
+                                node.mailboxes,
+                                node.folder
+                            )
         except Exception as e:
             logging.getLogger("tardis").exception("Exception in ComposerView._on_sent")
 
@@ -273,17 +295,19 @@ class ComposerView(QWidget):
             subject_val = self.subject_input.text().strip()
             body_val = self.body_input.toPlainText().strip()
 
-            if to_val or subject_val or body_val:
+            if not self._sent_successfully and (to_val or subject_val or body_val):
                 reply = QMessageBox.question(
                     self,
-                    "¿Descartar borrador?",
-                    "Tiene un borrador en proceso. ¿Realmente desea descartarlo?",
-                    QMessageBox.Yes | QMessageBox.No,
-                    QMessageBox.No
+                    "Discard draft?",
+                    "You have unsent content. Discard this email?",
+                    QMessageBox.Yes | QMessageBox.No
                 )
                 if reply == QMessageBox.No:
                     event.ignore()
                     return
+
+            settings = QSettings("Tardis", "Tardis")
+            settings.setValue("floating/Compose/geometry", self.saveGeometry())
             event.accept()
         except Exception as e:
             logging.getLogger("tardis").exception("Exception in ComposerView.closeEvent")

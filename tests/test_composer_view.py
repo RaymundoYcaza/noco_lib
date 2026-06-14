@@ -115,7 +115,7 @@ class TestComposerView:
                 priority="Alta"
             )
 
-            mock_main_window.show_notification.assert_called_once_with("Correo enviado", "info")
+            mock_main_window.show_notification.assert_called_once_with("Email sent", "success")
             assert view.to_input.text() == ""
             assert view.cc_input.text() == ""
             assert view.subject_input.text() == ""
@@ -196,3 +196,50 @@ class TestComposerView:
             view.closeEvent(event)
             mock_question.assert_called_once()
             assert event.isAccepted()
+
+    def test_close_event_sent_successfully_bypass(self, mock_run, mock_main_window, mock_client):
+        """If fields have content but the email was sent successfully, bypass discard confirmation."""
+        view = ComposerView(mock_main_window, mock_client, ["sender_user"])
+        view.subject_input.setText("Bypass me")
+        view._sent_successfully = True
+        
+        from PySide6.QtGui import QCloseEvent
+        event = QCloseEvent()
+        with patch("PySide6.QtWidgets.QMessageBox.question") as mock_question:
+            view.closeEvent(event)
+            mock_question.assert_not_called()
+            assert event.isAccepted()
+
+    def test_close_event_question_text(self, mock_run, mock_main_window, mock_client):
+        """Verify the exact English title and message are used for discard confirmation."""
+        view = ComposerView(mock_main_window, mock_client, ["sender_user"])
+        view.subject_input.setText("Test Text")
+        
+        from PySide6.QtWidgets import QMessageBox
+        from PySide6.QtGui import QCloseEvent
+        event = QCloseEvent()
+        with patch("PySide6.QtWidgets.QMessageBox.question", return_value=QMessageBox.Yes) as mock_question:
+            view.closeEvent(event)
+            mock_question.assert_called_once_with(
+                view,
+                "Discard draft?",
+                "You have unsent content. Discard this email?",
+                QMessageBox.Yes | QMessageBox.No
+            )
+
+    def test_close_event_saves_geometry(self, mock_run, mock_main_window, mock_client):
+        """Verify that closing saves geometry to QSettings under 'floating/Compose/geometry'."""
+        view = ComposerView(mock_main_window, mock_client, ["sender_user"])
+        
+        from PySide6.QtCore import QSettings
+        from PySide6.QtGui import QCloseEvent
+        event = QCloseEvent()
+        
+        settings = QSettings("Tardis", "Tardis")
+        settings.remove("floating/Compose/geometry")
+        
+        view.closeEvent(event)
+        assert event.isAccepted()
+        
+        saved_geom = settings.value("floating/Compose/geometry")
+        assert saved_geom is not None

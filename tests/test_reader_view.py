@@ -167,3 +167,88 @@ class TestReaderView:
             mock_get.assert_called_once_with(mock_client, 201)
             mock_mark.assert_called_once_with(mock_client, 201)
             assert emitted_ids == [201]
+
+    def test_action_buttons_visibility(self, mock_run, mock_main_window, mock_client):
+        """Verify buttons are disabled when no email is selected, or appropriately based on folder."""
+        view = ReaderView(mock_main_window, mock_client)
+        assert not view.btn_archive.isEnabled()
+        assert not view.btn_trash.isEnabled()
+
+        # Mock selected node in sidebar
+        mock_node = MagicMock()
+        mock_node.folder = "inbox"
+        mock_node.mailboxes = ["test@test.com"]
+        mock_item = MagicMock()
+        mock_item.data.return_value = mock_node
+        
+        mock_sidebar = MagicMock()
+        mock_sidebar.currentItem.return_value = mock_item
+        mock_main_window.sidebar_view = mock_sidebar
+
+        # Mock current email id is set
+        view._current_email_id = 101
+        view._update_action_buttons()
+
+        # In Inbox folder, both archive and trash are enabled
+        assert view.btn_archive.isEnabled()
+        assert view.btn_trash.isEnabled()
+
+        # In Archive folder, archive is disabled, trash is enabled
+        mock_node.folder = "archive"
+        view._update_action_buttons()
+        assert not view.btn_archive.isEnabled()
+        assert view.btn_trash.isEnabled()
+
+        # In Trash folder, archive is enabled, trash is disabled
+        mock_node.folder = "trash"
+        view._update_action_buttons()
+        assert view.btn_archive.isEnabled()
+        assert not view.btn_trash.isEnabled()
+
+    def test_archive_action_success(self, mock_run, mock_main_window, mock_client):
+        """Clicking archive calls the service, sends a toast, and refreshes the list."""
+        view = ReaderView(mock_main_window, mock_client)
+        view._current_email_id = 101
+
+        # Mock sidebar selection
+        mock_node = MagicMock()
+        mock_node.folder = "inbox"
+        mock_node.mailboxes = ["test@test.com"]
+        mock_item = MagicMock()
+        mock_item.data.return_value = mock_node
+        mock_sidebar = MagicMock()
+        mock_sidebar.currentItem.return_value = mock_item
+        mock_main_window.sidebar_view = mock_sidebar
+        mock_main_window.email_list_view = MagicMock()
+
+        result = NocoResult.ok("update", data=[])
+        with patch("modules.localmail.service.archive_email", return_value=result) as mock_archive:
+            view._on_archive_clicked()
+            mock_archive.assert_called_once_with(mock_client, 101)
+            mock_main_window.show_notification.assert_called_once_with("Email archived", "success")
+            mock_main_window.email_list_view.load.assert_called_once_with(mock_client, ["test@test.com"], "inbox")
+            assert view._current_email_id is None
+
+    def test_trash_action_success(self, mock_run, mock_main_window, mock_client):
+        """Clicking move to trash calls the service, sends a toast, and refreshes the list."""
+        view = ReaderView(mock_main_window, mock_client)
+        view._current_email_id = 101
+
+        # Mock sidebar selection
+        mock_node = MagicMock()
+        mock_node.folder = "inbox"
+        mock_node.mailboxes = ["test@test.com"]
+        mock_item = MagicMock()
+        mock_item.data.return_value = mock_node
+        mock_sidebar = MagicMock()
+        mock_sidebar.currentItem.return_value = mock_item
+        mock_main_window.sidebar_view = mock_sidebar
+        mock_main_window.email_list_view = MagicMock()
+
+        result = NocoResult.ok("update", data=[])
+        with patch("modules.localmail.service.move_to_trash", return_value=result) as mock_trash:
+            view._on_trash_clicked()
+            mock_trash.assert_called_once_with(mock_client, 101)
+            mock_main_window.show_notification.assert_called_once_with("Moved to trash", "success")
+            mock_main_window.email_list_view.load.assert_called_once_with(mock_client, ["test@test.com"], "inbox")
+            assert view._current_email_id is None

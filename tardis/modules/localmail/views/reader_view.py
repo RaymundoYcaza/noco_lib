@@ -2,7 +2,10 @@ import sys
 import logging
 from pathlib import Path
 from datetime import datetime
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QFrame, QTextBrowser, QLabel
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QFrame,
+    QTextBrowser, QLabel, QPushButton
+)
 from PySide6.QtCore import Qt, Signal
 import qtawesome as qta
 
@@ -26,6 +29,7 @@ class ReaderView(QWidget):
         super().__init__(parent)
         self.main_window = main_window
         self.client = client
+        self._current_email_id = None
         self._init_ui()
 
     def _init_ui(self) -> None:
@@ -37,6 +41,61 @@ class ReaderView(QWidget):
         self.title_label = QLabel("Lector de Correo")
         self.title_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #ffffff;")
         layout.addWidget(self.title_label)
+
+        # Action Buttons Row
+        self.actions_layout = QHBoxLayout()
+        self.actions_layout.setContentsMargins(0, 0, 0, 0)
+        self.actions_layout.setSpacing(8)
+
+        self.btn_archive = QPushButton("Archive")
+        self.btn_archive.setIcon(qta.icon("fa5s.archive", color="#e1e1e6"))
+        self.btn_archive.setStyleSheet("""
+            QPushButton {
+                background-color: #27272a;
+                color: #e1e1e6;
+                border: 1px solid #3f3f46;
+                padding: 6px 12px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #3f3f46;
+            }
+            QPushButton:disabled {
+                background-color: #18181b;
+                color: #52525b;
+                border-color: #27272a;
+            }
+        """)
+
+        self.btn_trash = QPushButton("Move to Trash")
+        self.btn_trash.setIcon(qta.icon("fa5s.trash", color="#e1e1e6"))
+        self.btn_trash.setStyleSheet("""
+            QPushButton {
+                background-color: #27272a;
+                color: #e1e1e6;
+                border: 1px solid #3f3f46;
+                padding: 6px 12px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #3f3f46;
+            }
+            QPushButton:disabled {
+                background-color: #18181b;
+                color: #52525b;
+                border-color: #27272a;
+            }
+        """)
+
+        self.btn_archive.clicked.connect(self._on_archive_clicked)
+        self.btn_trash.clicked.connect(self._on_trash_clicked)
+
+        self.actions_layout.addWidget(self.btn_archive)
+        self.actions_layout.addWidget(self.btn_trash)
+        self.actions_layout.addStretch()
+        layout.addLayout(self.actions_layout)
 
         # 1. Cabecera (Header block)
         self.header_widget = QWidget()
@@ -129,6 +188,7 @@ class ReaderView(QWidget):
         self.header_widget.setVisible(False)
         self.separator.setVisible(False)
         self.browser.setPlainText("Selecciona un correo para leerlo.")
+        self._update_action_buttons()
 
     def show_email(self, email_id: int) -> None:
         """
@@ -136,11 +196,15 @@ class ReaderView(QWidget):
         """
         try:
             if not isinstance(email_id, int) or email_id <= 0:
+                self._current_email_id = None
                 self.header_widget.setVisible(False)
                 self.separator.setVisible(False)
                 self.browser.setPlainText("ID de correo inválido.")
+                self._update_action_buttons()
                 return
 
+            self._current_email_id = email_id
+            self._update_action_buttons()
             self.header_widget.setVisible(False)
             self.separator.setVisible(False)
             self.browser.setPlainText("Cargando correo...")
@@ -157,6 +221,8 @@ class ReaderView(QWidget):
     def _render(self, result) -> None:
         try:
             if not result.success:
+                self._current_email_id = None
+                self._update_action_buttons()
                 err_msg = result.errors[0] if result.errors else "Error desconocido al cargar el correo."
                 self.browser.setPlainText(f"Error: {err_msg}")
                 self.header_widget.setVisible(False)
@@ -167,6 +233,8 @@ class ReaderView(QWidget):
 
             email = result.data
             if not email:
+                self._current_email_id = None
+                self._update_action_buttons()
                 self.browser.setPlainText("Correo no encontrado.")
                 self.header_widget.setVisible(False)
                 self.separator.setVisible(False)
@@ -220,6 +288,7 @@ class ReaderView(QWidget):
             self.header_widget.setVisible(True)
             self.separator.setVisible(True)
             self.browser.setPlainText(body)
+            self._update_action_buttons()
 
             # Fire-and-forget: mark as read as a separate independent call
             email_id = email.get("Id")
@@ -246,6 +315,8 @@ class ReaderView(QWidget):
 
     def _on_error(self, exc: Exception) -> None:
         try:
+            self._current_email_id = None
+            self._update_action_buttons()
             err_msg = f"Error inesperado: {exc}"
             self.browser.setPlainText(err_msg)
             self.header_widget.setVisible(False)
@@ -254,3 +325,106 @@ class ReaderView(QWidget):
                 self.main_window.show_notification(err_msg, "error")
         except Exception as e:
             logging.getLogger("tardis").exception("Exception in ReaderView._on_error")
+
+    def _get_current_folder(self) -> str | None:
+        if hasattr(self.main_window, "sidebar_view") and self.main_window.sidebar_view:
+            current_item = self.main_window.sidebar_view.currentItem()
+            if current_item:
+                node = current_item.data(0, Qt.UserRole + 1)
+                if node:
+                    return node.folder
+        return None
+
+    def _get_current_mailboxes(self) -> list[str]:
+        if hasattr(self.main_window, "sidebar_view") and self.main_window.sidebar_view:
+            current_item = self.main_window.sidebar_view.currentItem()
+            if current_item:
+                node = current_item.data(0, Qt.UserRole + 1)
+                if node:
+                    return node.mailboxes
+        return []
+
+    def _update_action_buttons(self) -> None:
+        folder = self._get_current_folder()
+        has_email = getattr(self, "_current_email_id", None) is not None
+        self.btn_archive.setEnabled(has_email and folder != "archive")
+        self.btn_trash.setEnabled(has_email and folder != "trash")
+
+    def _on_archive_clicked(self) -> None:
+        email_id = getattr(self, "_current_email_id", None)
+        if not email_id:
+            return
+        self.btn_archive.setEnabled(False)
+        self.btn_trash.setEnabled(False)
+        run_async(
+            service.archive_email,
+            self.client,
+            email_id,
+            on_success=self._on_archive_success,
+            on_error=self._on_action_error
+        )
+
+    def _on_trash_clicked(self) -> None:
+        email_id = getattr(self, "_current_email_id", None)
+        if not email_id:
+            return
+        self.btn_archive.setEnabled(False)
+        self.btn_trash.setEnabled(False)
+        run_async(
+            service.move_to_trash,
+            self.client,
+            email_id,
+            on_success=self._on_trash_success,
+            on_error=self._on_action_error
+        )
+
+    def _on_archive_success(self, result) -> None:
+        try:
+            if result.success:
+                if hasattr(self.main_window, "show_notification"):
+                    self.main_window.show_notification("Email archived", "success")
+                self._clear_reader_and_refresh()
+            else:
+                err = result.errors[0] if result.errors else "Error al archivar el correo"
+                if hasattr(self.main_window, "show_notification"):
+                    self.main_window.show_notification(err, "error")
+                self._update_action_buttons()
+        except Exception as e:
+            logging.getLogger("tardis").exception("Exception in ReaderView._on_archive_success")
+            self._update_action_buttons()
+
+    def _on_trash_success(self, result) -> None:
+        try:
+            if result.success:
+                if hasattr(self.main_window, "show_notification"):
+                    self.main_window.show_notification("Moved to trash", "success")
+                self._clear_reader_and_refresh()
+            else:
+                err = result.errors[0] if result.errors else "Error al mover a la papelera"
+                if hasattr(self.main_window, "show_notification"):
+                    self.main_window.show_notification(err, "error")
+                self._update_action_buttons()
+        except Exception as e:
+            logging.getLogger("tardis").exception("Exception in ReaderView._on_trash_success")
+            self._update_action_buttons()
+
+    def _on_action_error(self, exc: Exception) -> None:
+        try:
+            err_msg = f"Error: {exc}"
+            if hasattr(self.main_window, "show_notification"):
+                self.main_window.show_notification(err_msg, "error")
+            self._update_action_buttons()
+        except Exception as e:
+            logging.getLogger("tardis").exception("Exception in ReaderView._on_action_error")
+
+    def _clear_reader_and_refresh(self) -> None:
+        self._current_email_id = None
+        self.header_widget.setVisible(False)
+        self.separator.setVisible(False)
+        self.browser.setPlainText("Selecciona un correo para leerlo.")
+        self._update_action_buttons()
+        
+        folder = self._get_current_folder()
+        mailboxes = self._get_current_mailboxes()
+        if folder and mailboxes and hasattr(self.main_window, "email_list_view") and self.main_window.email_list_view:
+            self.main_window.email_list_view.load(self.client, mailboxes, folder)
