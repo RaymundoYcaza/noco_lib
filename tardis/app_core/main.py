@@ -1,4 +1,5 @@
 import sys
+import logging
 from pathlib import Path
 
 # Add paths to sys.path
@@ -10,8 +11,12 @@ noco_lib_dir = tardis_dir / "noco_lib"
 if str(noco_lib_dir) not in sys.path:
     sys.path.insert(0, str(noco_lib_dir))
 
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QMessageBox
+from PySide6.QtCore import QTimer
 from noco_lib.noco_core import NocoClient
+from app_core.concurrency import run_async
+
+logger = logging.getLogger("tardis")
 from app_core.config import load_tardis_config
 from app_core.logging_setup import setup_logging
 from app_core.main_window import MainWindow
@@ -78,7 +83,43 @@ def main() -> None:
     splash.close()
     window.showMaximized()
 
-    # 11. Iniciar el bucle de eventos de la aplicación
+    # ── 12. Verificar actualizaciones (Phase 6) ────────────────
+    # (Ejecutado 3s después del inicio en un hilo secundario)
+    def _update_check_done(win: MainWindow, remote_ver: str | None) -> None:
+        """Callback en el hilo de UI con el resultado de la verificación."""
+        if remote_ver is None:
+            return
+        from app_core.updater import download_and_install
+        from app_core.version import load_version
+        local_ver = load_version()
+        reply = QMessageBox.question(
+            win,
+            "Actualización disponible",
+            f"Hay una nueva versión de Tardis disponible:\n\n"
+            f"  Actual:  v{local_ver}\n"
+            f"  Nueva:   v{remote_ver}\n\n"
+            "¿Deseas descargar e instalar la actualización?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.Yes,
+        )
+        if reply == QMessageBox.Yes:
+            download_and_install(remote_ver)
+            sys.exit(0)
+
+    def _run_update_check(win: MainWindow) -> None:
+        """Lanza la verificación en hilo secundario para no bloquear la UI."""
+        from app_core.updater import check_for_updates
+        run_async(
+            check_for_updates,
+            on_success=lambda r: _update_check_done(win, r),
+            on_error=lambda e: logger.warning(
+                "Error al verificar actualizaciones: %s", e
+            ),
+        )
+
+    QTimer.singleShot(3000, lambda: _run_update_check(window))
+
+    # 13. Iniciar el bucle de eventos de la aplicación
     sys.exit(app.exec())
 
 if __name__ == "__main__":

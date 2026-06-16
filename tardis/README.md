@@ -1,54 +1,161 @@
-# Tardis Monorepo
+# 🛸 Tardis
 
-Proyecto "Tardis" - Cliente de escritorio modular (Outlook/Thunderbird) en Python + PySide6.
+Cliente de escritorio modular tipo Outlook/Thunderbird en Python + PySide6.
 
-## Resoluciones de Diseño e Importación
+**Versión actual:** `v0.1.0.1` (ver `tardis/VERSION`)
+
+---
+
+## Funcionalidades
+
+- 📧 **LocalMail** — Cliente de correo electrónico con bandeja de entrada, redacción, visor y firma digital
+- 📄 **PDF Export** — Exportación de documentos a PDF con branding, plantillas Jinja2 y Chromium
+- 🤖 **AI Corrections** — Módulo de correcciones asistidas por IA (Ollama)
+- 🔔 **Notificaciones** — Sonido, destello en barra de tareas y toasts con acción
+- ⚙️ **Configuración** — Gestión de módulos, conexión NocoDB, firmas y diagnóstico
+- 🎨 **Temas dinámicos** — Basados en JSON (Inorizonti como tema predeterminado)
+
+---
+
+## Instalación
+
+### Opción 1: Instalador (recomendado)
+
+1. Descarga el instalador desde la ruta de red:
+   ```
+   X:\B02_SOFTWARE-LIBRARY\00-INTERNOS\Tardis\Tardis-v0.1.0.X-Setup.exe
+   ```
+2. Ejecuta el instalador y sigue los pasos.
+3. Copia el archivo `.env.example` (junto al .exe) a `.env` y configura tus credenciales:
+   ```env
+   NOCO_BASE_URL=https://tu-servidor.nocodb.com
+   NOCO_TOKEN=tu-token-de-api
+   NOCO_BASE_ID=id-de-tu-base
+   TARDIS_MAILBOXES=usuario1@empresa.com;usuario2@empresa.com
+   ```
+4. Ejecuta Tardis desde el acceso directo.
+
+### Opción 2: Carpeta portable
+
+1. Copia la carpeta `Tardis-vX.X.X.X/` desde la ruta de red a tu PC.
+2. Coloca el archivo `.env` junto a `Tardis.exe`.
+3. Ejecuta `Tardis.exe`.
+
+> **Nota:** No necesitas tener Python instalado. El ejecutable incluye todo lo necesario.
+
+---
+
+## Actualización
+
+Tardis busca actualizaciones automáticamente 3 segundos después de iniciar:
+
+1. Consulta la ruta configurada (`TARDIS_UPDATE_PATH`) en busca de un archivo `VERSION` remoto.
+2. Si la versión remota es mayor, muestra un diálogo:
+   ```
+   Hay una nueva versión disponible: v0.2.0.1 (actual: v0.1.0.42)
+   ¿Deseas descargar e instalar la actualización?
+   ```
+3. Al aceptar, se ejecuta el instalador y Tardis se cierra.
+
+### Configurar la ruta de actualización
+
+Puedes cambiar la ruta en **Configuración > Apariencia > Actualizaciones**
+o mediante la variable de entorno:
+```env
+TARDIS_UPDATE_PATH=X:\B02_SOFTWARE-LIBRARY\00-INTERNOS\Tardis
+```
+
+> Si la ruta de red no está disponible, Tardis continúa normalmente sin mostrar error.
+
+---
+
+## Compilación desde código fuente
+
+### Requisitos
+
+- Python 3.13+
+- PySide6
+- PyInstaller (para empaquetado)
+- Poppler (para PDF, opcional)
+
+### Pasos
+
+```bash
+# Clonar el repositorio
+git clone <repo-url>
+cd tardis-monorepo/tardis
+
+# Crear y activar entorno virtual
+python -m venv .venv
+.venv\Scripts\activate
+
+# Instalar dependencias
+pip install -e .
+pip install pyinstaller
+
+# Copiar archivo de configuración
+copy .env.example .env
+# Editar .env con tus credenciales NocoDB
+
+# Ejecutar en desarrollo
+python app_core/main.py
+
+# Compilar para distribución
+python build.py                # Build estándar (carpeta)
+python build.py --portable      # Build portable (un solo .exe)
+python build.py --installer     # Build + instalador Inno Setup
+```
+
+### Estructura del proyecto
+
+```
+tardis/
+├── VERSION                     # Versión de la aplicación (x.y.z.build)
+├── build.py                    # Script de build con PyInstaller
+├── .env.example                # Template de configuración
+├── app_core/                   # Núcleo de la aplicación
+│   ├── main.py                 # Punto de entrada
+│   ├── main_window.py          # Ventana principal
+│   ├── config.py               # Configuración (.env + entorno)
+│   ├── version.py              # Sistema de versionado
+│   ├── updater.py              # Actualización automática
+│   ├── notifier.py             # Notificador de bandeja de entrada
+│   ├── concurrency.py          # Utilidades de concurrencia (run_async)
+│   ├── splash.py               # Pantalla de inicio
+│   ├── theme_engine.py         # Motor de temas JSON
+│   ├── views/                  # Vistas de configuración
+│   └── widgets/                # Widgets reutilizables
+├── modules/                    # Módulos funcionales
+│   ├── localmail/              # Cliente de correo
+│   ├── pdf_export/             # Exportación PDF
+│   ├── ai_corrections/         # Correcciones con IA
+│   └── _template_module/       # Template para nuevos módulos
+├── shared/                     # Assets compartidos
+│   ├── brands/                 # Logos y estilos por marca
+│   ├── schemas/                # Esquemas JSON
+│   ├── sounds/                 # Sonidos de notificación
+│   └── templates/              # Plantillas Jinja2
+├── scripts/                    # Scripts de utilidad
+│   └── bump_version.py         # Auto-incremento de build
+├── installer/                  # Instalador Inno Setup
+│   └── tardis_setup.iss
+└── specs/                      # Especificaciones por fase
+    └── 1781569500000_tardis-spec-phase6/
+```
+
+---
+
+## Resoluciones de Diseño
 
 ### noco_lib
+
 Para mantener el código existente de `noco_lib` (`noco_core`, `noco_discovery`, `noco_ext`, `noco_modules`, `noco_cli`) completamente idéntico y sin modificar su contenido (evitando romper sus imports absolutos internos como `from noco_core.config import load_env`), se ha decidido:
 - Mantener la estructura interna intacta dentro de `tardis/noco_lib/`.
 - En el punto de entrada de la aplicación (`app_core/main.py`), los scripts de test y de CLI, se añadirá la ruta de `tardis/noco_lib/` al `sys.path` de Python al iniciar.
 - Esto asegura la compatibilidad tanto para llamadas internas como para imports estructurados desde módulos externos del monorepo (`from noco_lib.noco_core import NocoClient`).
 
-## Empaquetado y Distribución
+### NocoDB: almacenamiento local
 
-### 1. Proceso de Build
-Para compilar la aplicación en modo **one-folder** (carpeta autocontenida), sigue estos pasos:
-
-1. Asegúrate de tener el entorno virtual activo y todas las dependencias instaladas.
-2. Ejecuta el siguiente comando desde el directorio `tardis/`:
-   ```powershell
-   # Si ya existe una compilación previa, limpia el directorio de salida
-   Remove-Item -Recurse -Force dist
-   
-   # Ejecutar el empaquetado con PyInstaller usando la configuración del archivo spec
-   ..\.venv_win\Scripts\pyinstaller --clean --noconfirm tardis.spec
-   ```
-3. Al finalizar, el resultado compilado se ubicará en la carpeta `tardis/dist/Tardis/`.
-
-### 2. Distribución a Compañeros
-Para compartir la aplicación:
-1. Copia toda la carpeta `tardis/dist/Tardis/` (y no solo el archivo `Tardis.exe`, ya que requiere las librerías e intérprete ubicados en `_internal`).
-2. Comprime la carpeta en un archivo `.zip` para facilitar su distribución.
-3. Tus compañeros **no necesitan tener Python instalado** en sus computadoras para ejecutarlo.
-
-### 3. Configuración del Entorno (.env)
-El ejecutable no incluye credenciales de base de datos de manera estática.
-- Para conectarse, el usuario debe colocar un archivo `.env` en la raíz de la carpeta (junto a `Tardis.exe`).
-- Se incluye un archivo `.env.example` en la carpeta `_internal` como referencia. Las variables requeridas son:
-  ```env
-  NOCO_BASE_URL = <URL_de_tu_servidor_NocoDB>
-  NOCO_TOKEN = <Token_de_acceso_NocoDB>
-  NOCO_BASE_ID = <ID_de_la_base_de_datos>
-  TARDIS_LOCALMAIL_TABLE = DIR_LOCAL-MAIL
-  ```
-
-### 4. Cómo Actualizar
-Cuando realices cambios en el código y necesites distribuir una nueva versión:
-1. Asegúrate de que no haya ninguna instancia de `Tardis.exe` ejecutándose en segundo plano (para evitar bloqueos de archivos en `dist/`). Puedes forzar su cierre desde PowerShell con:
-   ```powershell
-   Stop-Process -Name Tardis -Force -ErrorAction SilentlyContinue
-   ```
-2. Limpia la carpeta `dist/` y vuelve a ejecutar el comando de PyInstaller.
-3. Distribuye la carpeta `dist/Tardis/` actualizada.
-4. **Nota importante:** Advierte a tus compañeros que no sobrescriban su archivo `.env` existente al descomprimir la nueva versión para que conserven su configuración de conexión.
+Esta instancia de NocoDB usa almacenamiento **local** (no S3).
+Los attachments devuelven `signedPath` en lugar de `signedUrl`.
+Ver `EXTENSION_POINTS.md` sección 5 para más detalles.

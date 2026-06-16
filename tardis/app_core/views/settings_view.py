@@ -28,6 +28,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QTimer
 
 from app_core.concurrency import run_async
+from app_core.version import load_version
 from app_core.views.module_admin_view import ModuleAdminView
 from modules.localmail import service as localmail_service
 from modules.localmail.signatures import (
@@ -165,6 +166,20 @@ class SettingsView(QWidget):
 
         layout.addWidget(lm_group)
 
+        # ── Acerca de (badge de versión) ──
+        version_group = QGroupBox("Acerca de")
+        version_layout = QVBoxLayout(version_group)
+
+        badge = QLabel(f"🛸 Tardis v{load_version()}")
+        badge.setStyleSheet("""
+            font-size: 22px; font-weight: bold;
+            color: #e9290c; padding: 20px;
+            background: #f5f3f0; border-radius: 8px;
+        """)
+        badge.setAlignment(Qt.AlignCenter)
+        version_layout.addWidget(badge)
+
+        layout.addWidget(version_group)
         layout.addStretch()
         return tab
 
@@ -195,7 +210,7 @@ class SettingsView(QWidget):
     # ── Apariencia tab ────────────────────────────────────────────────
 
     def _build_appearance_tab(self) -> QWidget:
-        """Tab de Apariencia con opciones de sonido y notificaciones."""
+        """Tab de Apariencia con opciones de sonido, notificaciones y actualizaciones."""
         tab = QWidget()
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(8, 8, 8, 8)
@@ -211,6 +226,43 @@ class SettingsView(QWidget):
         group_layout.addWidget(self._chk_sound)
 
         layout.addWidget(group)
+
+        # ── Actualizaciones ──
+        update_group = QGroupBox("Actualizaciones")
+        update_layout = QVBoxLayout(update_group)
+
+        update_desc = QLabel(
+            "Ruta donde Tardis busca nuevas versiones.\n"
+            "Puede ser una unidad de red (X:), local (C:) o disco externo."
+        )
+        update_desc.setWordWrap(True)
+        update_desc.setStyleSheet("color: #5a5a56;")
+        update_layout.addWidget(update_desc)
+
+        path_row = QHBoxLayout()
+        self._update_path = QLineEdit()
+        self._update_path.setText(
+            os.environ.get(
+                "TARDIS_UPDATE_PATH",
+                r"X:\B02_SOFTWARE-LIBRARY\00-INTERNOS\Tardis",
+            )
+        )
+        path_row.addWidget(self._update_path, stretch=1)
+
+        self._update_path_save = QPushButton("Guardar ruta")
+        self._update_path_save.clicked.connect(self._on_save_update_path)
+        path_row.addWidget(self._update_path_save)
+        update_layout.addLayout(path_row)
+
+        self._check_updates_btn = QPushButton("Buscar actualizaciones ahora")
+        self._check_updates_btn.clicked.connect(self._on_check_updates_now)
+        update_layout.addWidget(self._check_updates_btn)
+
+        self._update_result = QLabel("")
+        self._update_result.setWordWrap(True)
+        update_layout.addWidget(self._update_result)
+
+        layout.addWidget(update_group)
         layout.addStretch()
         return tab
 
@@ -218,6 +270,75 @@ class SettingsView(QWidget):
         """Activa o desactiva el sonido de notificación."""
         if self._notifier:
             self._notifier.set_sound_enabled(state == Qt.Checked)
+
+    # ── Actualizaciones: handlers ───────────────────────────────────────
+
+    def _on_save_update_path(self) -> None:
+        """Guarda la ruta de actualización en QSettings."""
+        path = self._update_path.text().strip()
+        if not path:
+            QMessageBox.warning(self, "Validación", "La ruta no puede estar vacía.")
+            return
+        from PySide6.QtCore import QSettings
+        settings = QSettings("Tardis", "Tardis")
+        settings.setValue("updates/update_path", path)
+        os.environ["TARDIS_UPDATE_PATH"] = path
+        if hasattr(self._main_window, "show_notification"):
+            self._main_window.show_notification(
+                "Ruta de actualización guardada. Se usará en el próximo inicio.",
+                "success",
+            )
+
+    def _on_check_updates_now(self) -> None:
+        """Busca actualizaciones ahora y muestra el resultado."""
+        from app_core.updater import check_for_updates, download_and_install
+
+        def _do_check():
+            remote = check_for_updates()
+            if remote:
+                reply = QMessageBox.question(
+                    self,
+                    "Actualización disponible",
+                    f"Hay una nueva versión: v{remote}\n"
+                    f"(actual: v{load_version()})\n\n"
+                    "¿Descargar e instalar ahora?",
+                    QMessageBox.Yes | QMessageBox.No,
+                )
+                if reply == QMessageBox.Yes:
+                    if download_and_install(remote):
+                        if hasattr(self._main_window, "show_notification"):
+                            self._main_window.show_notification(
+                                "Instalando actualización...", "info"
+                            )
+                        self._main_window.close()
+                    else:
+                        self._set_update_result(
+                            "Error al descargar la actualización.", "error"
+                        )
+                else:
+                    self._set_update_result(
+                        "Actualización cancelada por el usuario.", "info"
+                    )
+            else:
+                self._set_update_result(
+                    f"Ya tienes la última versión (v{load_version()}).", "success"
+                )
+
+        run_async(_do_check)
+
+    def _set_update_result(self, text: str, level: str = "info") -> None:
+        """Actualiza el label de resultado de la comprobación."""
+        colors = {
+            "info": "color: #1565c0;",
+            "success": "color: #2e7d32;",
+            "error": "color: #c62828;",
+        }
+        self._update_result.setStyleSheet(
+            f"padding: 8px; border-radius: 4px; font-weight: bold; "
+            f"{colors.get(level, colors['info'])}"
+        )
+        self._update_result.setText(text)
+        self._update_result.show()
 
     # ── Firmas tab ────────────────────────────────────────────────────
 

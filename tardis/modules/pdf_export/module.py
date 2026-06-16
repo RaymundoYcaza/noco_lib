@@ -372,12 +372,9 @@ def register(app: MainWindow, client: NocoClient) -> None:
         position="middle",
     )
 
-    # Menu action under Herramientas
-    # Activates the PDF Export screen via the nav system
-    app.add_menu_action(
-        "Herramientas",
-        "PDF Export",
-        lambda: app._activate_module("pdf_export"),
-    )
+    # Menu actions — ELIMINADO en Phase 6 (la navegación se hace
+    # exclusivamente mediante la NavBar).
+    # Roadmap: en Phase 7+ se implementará un botón hamburguesa (☰)
+    # con acceso rápido a todos los módulos.
 
     logger.info("PDF Export module registered (nav item)")

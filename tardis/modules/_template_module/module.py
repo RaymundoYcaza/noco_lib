@@ -8,9 +8,12 @@ if TYPE_CHECKING:
 def register(app: "MainWindow", client: "NocoClient") -> None:
     """
     Punto de entrada del módulo. Aquí se crean widgets/vistas y se
-    registran con app.add_dock_panel / add_floating_window /
-    add_menu_action. NUNCA llamar a client.table(...).read()/etc.
-    directamente aquí de forma síncrona si el resultado depende de
-    red — usar run_async desde dentro de las vistas.
+    registran con app.register_nav_item / add_floating_window.
+    NUNCA llamar a client.table(...).read()/etc. directamente aquí
+    de forma síncrona si el resultado depende de red — usar run_async
+    desde dentro de las vistas.
+
+    NOTA: add_dock_panel y add_menu_action fueron eliminados en
+    Phase 6. Usar register_nav_item en su lugar.
     """
     pass

@@ -9,7 +9,6 @@ from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
-    QMenuBar,
     QToolBar,
     QStatusBar,
     QStackedWidget,
@@ -112,14 +111,17 @@ class MainWindow(QMainWindow):
         │      │                                      │
         └──────┴──────────────────────────────────────┘
 
-    Extension points (unchanged from Phase 3):
+    NOTA: El menú superior (QMenuBar) fue eliminado en Phase 6.
+    Roadmap: en Phase 7+ se implementará un botón hamburguesa (☰)
+    desde la esquina superior izquierda — spec dedicada pendiente.
+
+    Extension points:
       - ``add_floating_window``
-      - ``add_menu_action``
       - ``add_toolbar_action``
       - ``show_notification``
       - ``add_sidebar_node``
 
-    NEW extension points (Phase 4b):
+    Extension points (Phase 4b):
       - ``register_nav_item`` — replaces ``add_dock_panel``
     """
 
@@ -295,40 +297,6 @@ class MainWindow(QMainWindow):
         floating.show()
         floating.raise_()
         return floating
-
-    # ── Menu actions ──────────────────────────────────────────────
-
-    def add_menu_action(self, menu_path: str, label: str, callback: Callable) -> None:
-        """Add a menu action under a nested path.
-
-        Paths use ``>`` as separator, e.g. ``\"LocalMail > Redactar\"``.
-        """
-        menu_bar = self.menuBar()
-        parts = [p.strip() for p in menu_path.split(">")]
-        current_menu = None
-
-        for part in parts:
-            if not part:
-                continue
-            parent = current_menu if current_menu is not None else menu_bar
-            found = False
-
-            for action in parent.actions():
-                menu = action.menu()
-                if menu and menu.title() == part:
-                    current_menu = menu
-                    found = True
-                    break
-
-            if not found:
-                if current_menu is None:
-                    current_menu = menu_bar.addMenu(part)
-                else:
-                    current_menu = current_menu.addMenu(part)
-
-        if current_menu is not None:
-            action = current_menu.addAction(label)
-            action.triggered.connect(callback)
 
     # ── Toolbar actions ───────────────────────────────────────────
 

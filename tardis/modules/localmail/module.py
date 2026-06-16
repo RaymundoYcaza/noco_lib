@@ -167,10 +167,9 @@ def register(app: MainWindow, client: NocoClient) -> None:
         position="top",     # Always visible at the top of the nav bar
     )
 
-    # 3. Menu actions (unchanged — but "Redactar" is now also available via the button)
-    def open_composer() -> None:
-        _open_composer_internal(app, client, mailboxes)
-
-    app.add_menu_action("LocalMail", "Redactar", open_composer)
+    # 3. Menu actions — ELIMINADO en Phase 6 (el botón "+ Nuevo mensaje"
+    #    en la sidebar reemplaza esta funcionalidad).
+    #    Roadmap: en Phase 7+ se implementará un botón hamburguesa (☰)
+    #    con acceso a las acciones globales.
 
     logger.info("LocalMail module registered (nav item)")

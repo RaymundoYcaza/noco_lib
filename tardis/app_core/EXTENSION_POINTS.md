@@ -15,10 +15,14 @@ The main window class (`MainWindow`) exposes several key methods to allow module
     *   **Custom Close Handling**: Automatically enabled on the floating dock wrapper to intercept titlebar closing and propagate it to the child widget via `close()`.
     *   **Geometry Persistence**: Automatically saves and restores the floating container's size and position from the QSettings key `floating/<title>/geometry` (or `floating/Compose/geometry` for `"Redactar correo"`).
 
-### Menus, Toolbars, and Notifications
+### Toolbars and Notifications
 
-*   `MainWindow.add_menu_action(menu_path: str, label: str, callback: Callable) -> None`
-    Adds an option to the main window's menu system using a nested route syntax, e.g. `"LocalMail > Redactar"`.
+> **⚠️ ELIMINADO en Phase 6**: `MainWindow.add_menu_action` fue eliminado.
+> El menú superior (`QMenuBar`) ya no existe. La navegación se realiza
+> exclusivamente mediante la NavBar (barra lateral izquierda).
+> Roadmap: en Phase 7+ se implementará un botón hamburguesa (☰) desde
+> la esquina superior izquierda, con su propia spec dedicada.
+
 *   `MainWindow.add_toolbar_action(icon_or_text, label: str, callback: Callable) -> None`
     Adds an action button to the application toolbar (reserved for global shortcuts).
 *   `MainWindow.show_notification(text: str, level: str = "info", duration_ms: int = 4000, action_label: str | None = None, action_callback: Callable | None = None) -> None`
@@ -266,7 +270,130 @@ de un usuario y `build_signature_html(sig)` para generar el HTML completo.
 
 ---
 
-## 7. PDF Export Module (`modules/pdf_export`)
+## 8. Version System (`app_core/version.py`)
+
+Tardis usa un sistema de versionado en formato **`x.y.z.build`** :
+
+| Componente | Significado |
+|---|---|
+| `x` (Major) | Cambios incompatibles en API o UI |
+| `y` (Minor) | Nuevas funcionalidades |
+| `z` (Patch) | Bugfixes y mejoras menores |
+| `build` | Compilación auto-incrementada en cada commit a `main` |
+
+### Funciones públicas
+
+```python
+from app_core.version import (
+    load_version,       # → "0.1.0.42"
+    get_version_parts,  # → (0, 1, 0, 42)
+    set_build,          # actualiza solo el build number
+)
+```
+
+### Punto de verdad único
+
+La versión se almacena en `tardis/VERSION` (una línea con `x.y.z.build`).
+Todos los componentes de la app leen de este archivo.
+
+### Auto-incremento
+
+El script `scripts/bump_version.py` incrementa el build number:
+```bash
+python scripts/bump_version.py
+```
+Se ejecuta automáticamente en CI/CD antes de cada push a `main`.
+
+El badge de versión se muestra en **Configuración > Conexión > Acerca de**
+con el formato `🛸 Tardis v0.1.0.X`.
+
+---
+
+## 9. Build System (`build.py`)
+
+Tardis se empaqueta con **PyInstaller** mediante el script `tardis/build.py`.
+
+### Modos de build
+
+| Comando | Modo | Velocidad de inicio | Uso |
+|---|---|---|---|
+| `python build.py` | `--onedir` (carpeta) | Rápida | Distribución estándar |
+| `python build.py --portable` | `--onefile` (único .exe) | Lenta (+3-10s extracción) | USB / portable |
+| `python build.py --installer` | Build + Inno Setup | — | Distribución con instalador |
+
+### Requisitos
+
+```bash
+pip install pyinstaller
+# Para logo.ico real (opcional, placeholder incluido):
+pip install cairosvg
+python -c "from pathlib import Path; import cairosvg; from PIL import Image; ..."
+```
+
+### Estructura del build
+
+```
+tardis/dist/Tardis-v0.1.0.X/
+├── Tardis.exe                     # Ejecutable principal
+├── .env.example                   # Template de configuración
+├── shared/                        # Assets (temas, sonidos, logos, templates)
+└── _internal/                     # DLLs, Python, dependencias
+```
+
+### Instalador Inno Setup
+
+Opcionalmente se puede generar un instalador `.exe`:
+```
+tardis/installer/
+└── tardis_setup.iss               # Script Inno Setup
+```
+
+---
+
+## 10. Auto-Updater (`app_core/updater.py`)
+
+Tardis busca actualizaciones automáticamente al iniciar, consultando
+un archivo `VERSION` en una ruta de red (o local) configurable.
+
+### Funciones públicas
+
+```python
+from app_core.updater import (
+    get_update_path,       # → Path a la ruta configurada
+    check_for_updates,     # → "0.1.0.42" | None
+    download_and_install,  # → True | False
+)
+```
+
+### Flujo de actualización
+
+1. **Al iniciar** (3s después de mostrar la ventana), se ejecuta
+   `check_for_updates()` en un hilo secundario via `run_async()`.
+2. Si la versión remota es mayor, se muestra un `QMessageBox`:
+   ```
+   Hay una nueva versión disponible: v0.2.0.1 (actual: v0.1.0.42)
+   ¿Deseas descargar e instalar la actualización?
+   ```
+3. Si el usuario acepta, se ejecuta el instalador desde la ruta de red
+   y Tardis se cierra.
+
+### Configuración de la ruta
+
+La ruta se determina por orden de precedencia:
+1. **QSettings** — configurado por el usuario en Settings > Apariencia > Actualizaciones
+2. **Variable de entorno** `TARDIS_UPDATE_PATH`
+3. **Valor por defecto** `X:\B02_SOFTWARE-LIBRARY\00-INTERNOS\Tardis`
+
+### Comportamiento ante fallos
+
+- Si la ruta de red no está disponible → fallo silencioso (`logger.debug`)
+- Si el `VERSION` remoto tiene formato inválido → `logger.warning`, retorna `None`
+- Si el instalador no existe en la ruta → `logger.error`, retorna `False`
+- Todos los errores se capturan con `try/except` — nunca bloquean el inicio de Tardis
+
+---
+
+## 11. PDF Export Module (`modules/pdf_export`)
 
 The PDF Export engine generates branded PDF documents from structured JSON data using Jinja2 templates, QtWebEngine's `printToPdf`, and pikepdf post-processing.
 

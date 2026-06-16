@@ -39,7 +39,7 @@ def mock_app():
     app.config.mailboxes = ["test_user"]
     app.add_dock_panel = MagicMock()
     app.add_floating_window = MagicMock()
-    app.add_menu_action = MagicMock()
+    # add_menu_action fue ELIMINADO en Phase 6 — ya no se usa
     return app
 
 
@@ -49,7 +49,7 @@ def mock_client():
 
 
 def test_register_module(mock_app, mock_client):
-    """Test that register() calls register_nav_item, wires up views, and adds menu actions."""
+    """Test that register() calls register_nav_item and wires up views."""
     
     mock_app.register_nav_item = MagicMock()
     
@@ -85,23 +85,10 @@ def test_register_module(mock_app, mock_client):
         assert isinstance(screen._splitter.widget(0), SidebarTreeView)
         assert isinstance(screen._splitter.widget(2), ReaderView)
 
-        # 3. Check menu actions were registered (Only "Redactar" action under "LocalMail")
-        assert mock_app.add_menu_action.call_count == 1
-        
-        menu_calls = mock_app.add_menu_action.call_args_list
-        assert menu_calls[0][0][0] == "LocalMail"
-        assert menu_calls[0][0][1] == "Redactar"
-        callback_compose = menu_calls[0][0][2]
-        
-        assert mock_app.add_floating_window.call_count == 0
-        with patch("modules.localmail.module.ComposerView", wraps=ComposerView) as mock_composer_cls:
-            callback_compose()
-            assert mock_app.add_floating_window.call_count == 1
-            mock_composer_cls.assert_called_once_with(mock_app, mock_client, ["test_user"])
-            
-            float_args = mock_app.add_floating_window.call_args[0]
-            assert isinstance(float_args[0], ComposerView)
-            assert float_args[1] == "Redactar correo"
+        # 3. Menu actions were ELIMINADOS en Phase 6 (menú superior eliminado).
+        #    La navegación se hace exclusivamente mediante la NavBar y el botón
+        #    "+ Nuevo mensaje" en la sidebar. No se registran add_menu_action.
+        #    Roadmap: en Phase 7+ se implementará un botón hamburguesa (☰).
 
 
 def test_register_module_restores_and_wires(mock_app, mock_client):
@@ -144,5 +131,3 @@ def test_register_module_restores_and_wires(mock_app, mock_client):
         
         # Check that it attempted to persist the new node selection
         mock_settings.setValue.assert_any_call("three_pane/last_selected_node", "test_user:inbox")
-
-

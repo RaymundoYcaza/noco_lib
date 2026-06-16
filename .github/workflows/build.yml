@@ -1,0 +1,52 @@
+name: Build Tardis
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  bump-version:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Increment build number
+        run: python tardis/scripts/bump_version.py
+      - name: Commit VERSION bump
+        run: |
+          git config user.name "Tardis CI"
+          git config user.email "ci@tardis.app"
+          git add tardis/VERSION
+          git commit -m "chore: bump build number [skip ci]" || echo "No changes to commit"
+          git push
+      - name: Create tag
+        run: |
+          $version = Get-Content tardis/VERSION -Raw
+          git tag "v$version"
+          git push origin "v$version"
+
+  build:
+    needs: bump-version
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install dependencies
+        run: |
+          pip install -e tardis/
+          pip install pyinstaller
+      - name: Build with PyInstaller
+        run: cd tardis && python build.py
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tardis-${{ github.ref_name }}
+          path: tardis/dist/
