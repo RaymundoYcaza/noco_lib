@@ -1,6 +1,6 @@
 """Splash screen shown during Tardis application startup.
 
-Muestra el logo de Inorizonti y el texto "LocalMail" mientras se
+Muestra el logo de Inorizonti y el texto "Tardis" mientras se
 inicializan los componentes de la aplicación (config, cliente NocoDB,
 descubrimiento de módulos, etc.).
 
@@ -28,7 +28,7 @@ from PySide6.QtSvg import QSvgRenderer
 
 
 class SplashScreen(QSplashScreen):
-    """Pantalla de inicio con el logo de Inorizonti y el texto 'LocalMail'.
+    """Pantalla de inicio con el logo de Inorizonti y el texto 'Tardis'.
 
     Parameters
     ----------
@@ -83,24 +83,24 @@ class SplashScreen(QSplashScreen):
         logo_x = (self._w - logo_w) // 2
         renderer.render(painter, QRectF(logo_x, 30, logo_w, logo_h))
 
-        # ── Título "LocalMail" ───────────────────────────────────
+        # ── Título "Tardis" ────────────────────────────────────
         title_font = QFont("Segoe UI", 16, QFont.Bold)
         painter.setFont(title_font)
         painter.setPen(QColor(self._COLOR_TEXT_PRIMARY))
         painter.drawText(
             QRect(0, 200, self._w, 56),
             Qt.AlignCenter,
-            "LocalMail",
+            "Tardis",
         )
 
         # ── Subtítulo ────────────────────────────────────────────
-        sub_font = QFont("Segoe UI", 13)
+        sub_font = QFont("Segoe UI", 11)
         painter.setFont(sub_font)
         painter.setPen(QColor(self._COLOR_TEXT_SECONDARY))
         painter.drawText(
             QRect(0, 256, self._w, 28),
             Qt.AlignCenter,
-            "Cliente de correo corporativo",
+            "Sistema de gestión documental y comunicaciones",
         )
 
         painter.end()
