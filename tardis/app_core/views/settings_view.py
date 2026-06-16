@@ -528,8 +528,11 @@ class SettingsView(QWidget):
             QMessageBox.warning(self, "Validación", "El nombre de la firma no puede estar vacío.")
             return
 
+        # Determinar el ID: usar el existente o generar uno nuevo
+        sig_id = self._sig_current_id or str(uuid.uuid4())
+
         sig = {
-            "id": self._sig_current_id or str(uuid.uuid4()),
+            "id": sig_id,
             "name": name,
             "mailbox": self._sig_mailbox.currentText(),
             "html": self._sig_html.toPlainText(),
@@ -557,6 +560,11 @@ class SettingsView(QWidget):
             sigs.append(sig)
 
         save_signatures(sigs)
+
+        # Actualizar el ID actual para que el proximo Guardar sea una actualizacion,
+        # no una nueva insercion
+        self._sig_current_id = sig_id
+
         self._refresh_sig_list()
         self._update_sig_preview()
 
