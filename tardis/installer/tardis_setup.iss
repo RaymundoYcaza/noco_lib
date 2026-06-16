@@ -5,9 +5,14 @@
 ;   1. Ejecutar primero: python build.py
 ;   2. Luego compilar con: iscc installer\tardis_setup.iss
 ;   O usar: python build.py --installer
+;
+; NOTA: MyAppVersion se pasa dinámicamente desde build.py mediante /d.
+;       Si se compila manualmente sin /d, se usa el valor por defecto.
 
 #define MyAppName "Tardis"
-#define MyAppVersion "0.1.0"
+#ifndef MyAppVersion
+# define MyAppVersion "0.1.0"
+#endif
 #define MyAppPublisher "Tardis"
 #define MyAppURL "https://tardis.app"
 #define MyAppExeName "Tardis.exe"
@@ -40,7 +45,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Crear acceso directo en el escritorio"; GroupDescription: "Accesos directos:"
 
 [Files]
-Source: "..\dist\Tardis-v{#MyAppVersion}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\Tardis\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\.env.example"; DestDir: "{app}"; DestName: ".env.example"; Flags: ignoreversion
 
 [Icons]

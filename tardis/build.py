@@ -55,7 +55,7 @@ def _base_cmd() -> list[str]:
     cmd = [
         sys.executable, "-m", "PyInstaller",
         "--windowed",  # sin consola
-        "--name", f"Tardis-v{VERSION}",
+        "--name", "Tardis",  # nombre neutral — la versión va en el instalador
         "--distpath", str(DIST_DIR),
         "--workpath", str(BUILD_DIR),
         "--specpath", str(BUILD_DIR),
@@ -110,7 +110,7 @@ def build_dir() -> None:
     cmd = _base_cmd() + ["--onedir", str(ROOT / "app_core" / "main.py")]
     print(f"Ejecutando: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
-    print(f"[OK] Build completado: {DIST_DIR / f'Tardis-v{VERSION}'}")
+    print(f"[OK] Build completado: {DIST_DIR / 'Tardis'}")
 
 
 def build_portable() -> None:
@@ -124,16 +124,23 @@ def build_portable() -> None:
     cmd = _base_cmd() + ["--onefile", str(ROOT / "app_core" / "main.py")]
     print(f"Ejecutando: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
-    print(f"[OK] Build portable completado: {DIST_DIR / f'Tardis-v{VERSION}.exe'}")
+    print(f"[OK] Build portable completado: {DIST_DIR / 'Tardis.exe'}")
 
 
 def build_installer() -> None:
-    """Build en directorio + genera instalador Inno Setup."""
+    """Build en directorio + genera instalador Inno Setup.
+
+    Pasa la versión actual al script .iss mediante ``/d`` para que
+    el instalador use el número de versión correcto sin hardcodearlo.
+    """
     build_dir()
     iss_path = ROOT / "installer" / "tardis_setup.iss"
     if iss_path.exists():
         print("Generando instalador Inno Setup...")
-        subprocess.run(["iscc", str(iss_path)], check=True)
+        subprocess.run(
+            ["iscc", f"/dMyAppVersion={VERSION}", str(iss_path)],
+            check=True,
+        )
         print("✅ Instalador generado.")
     else:
         print("⚠️  No se encontró installer/tardis_setup.iss — saltando instalador.")
