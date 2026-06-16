@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir *)",
+      "Bash(.venv_win\\scripts\\python.exe *)",
+      "Bash(powershell *)"
+    ]
+  },
+  "$version": 4
+}

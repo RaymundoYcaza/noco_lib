@@ -591,7 +591,7 @@ pyproject.toml                         # MODIFIED: sync version con VERSION file
 
 ### 13.3 — Actualización automática desde ruta de red
 
-- [ ] **13.3.1** Crear `app_core/updater.py`.
+- [x] **13.3.1** Crear `app_core/updater.py`.
 
       Context:
       Mecanismo de detección de nuevas versiones consultando un archivo
@@ -731,7 +731,7 @@ pyproject.toml                         # MODIFIED: sync version con VERSION file
       Si existe un `VERSION` remoto con versión mayor, retorna el string.
       Depends on: 13.0.1.
 
-- [ ] **13.3.2** Integrar el updater en `main.py` con diálogo de confirmación.
+- [x] **13.3.2** Integrar el updater en `main.py` con diálogo de confirmación.
 
       Context:
       Al iniciar Tardis, después de cargar todos los módulos y mostrar
@@ -788,7 +788,7 @@ pyproject.toml                         # MODIFIED: sync version con VERSION file
       - Sin `TARDIS_UPDATE_PATH` configurado → no hay diálogo, no hay error.
       Depends on: 13.3.1.
 
-- [ ] **13.3.3** Agregar configuración de ruta de actualización en Settings.
+- [x] **13.3.3** Agregar configuración de ruta de actualización en Settings.
 
       Context:
       El usuario debe poder ver y cambiar la ruta de actualización desde
@@ -923,7 +923,7 @@ pyproject.toml                         # MODIFIED: sync version con VERSION file
       Hacer clic en "Buscar actualizaciones ahora" → mensaje de resultado.
       Depends on: 13.3.2.
 
-- [ ] **13.3.4** **CHECKPOINT — Actualizaciones**: verificar:
+- [x] **13.3.4** **CHECKPOINT — Actualizaciones**: verificar:
       1. Sin ruta configurada: Tardis inicia sin diálogo, sin errores.
       2. Con ruta configurada y VERSION remoto con versión superior:
          diálogo aparece después de 3 segundos.
@@ -936,7 +936,7 @@ pyproject.toml                         # MODIFIED: sync version con VERSION file
 
 ### 13.4 — Roadmap y documentación
 
-- [ ] **13.4.1** Actualizar `EXTENSION_POINTS.md` con los cambios de Phase 6.
+- [x] **13.4.1** Actualizar `EXTENSION_POINTS.md` con los cambios de Phase 6.
 
       Steps:
       1. En la sección de Roadmap (al final del documento), agregar:
@@ -963,7 +963,7 @@ pyproject.toml                         # MODIFIED: sync version con VERSION file
       roadmap a futuro.
       Depends on: 13.3.4.
 
-- [ ] **13.4.2** Actualizar `README.md` principal con instrucciones de
+- [x] **13.4.2** Actualizar `README.md` principal con instrucciones de
       instalación y actualización.
 
       Steps:
