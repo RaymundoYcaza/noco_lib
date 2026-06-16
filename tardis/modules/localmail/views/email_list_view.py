@@ -86,8 +86,8 @@ class EmailListView(QWidget):
                 border-bottom: 1px solid rgba(233, 41, 12, 0.06);
             }
             QTableWidget::item:selected {
-                background-color: rgba(233, 41, 12, 0.12);
-                color: #1a1a18;
+                background-color: rgba(233, 41, 12, 0.80);
+                color: #ffffff;
             }
             QHeaderView::section {
                 background-color: #f5f3f0;
