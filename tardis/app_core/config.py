@@ -25,6 +25,62 @@ class TardisConfig:
     ai_base_url: str       # default "http://localhost:11434"
     poll_interval_seconds: int = 60  # intervalo de sondeo de bandeja de entrada
 
+def _check_missing_env_vars() -> None:
+    """Compara las variables del ``.env`` del usuario contra el archivo
+    ``.env.example`` empaquetado y loguea un warning si faltan variables
+    nuevas que deberían configurarse.
+
+    Busca el ``.env.example`` junto al ejecutable (frozen) o en la raíz
+    del proyecto (desarrollo), extrae los nombres de variable, y los
+    compara con ``os.environ`` actual.
+    """
+    # Determinar ruta del .env.example
+    if getattr(sys, "frozen", False):
+        # En frozen: --add-data lo coloca junto al .exe
+        example_path = Path(sys.executable).parent / ".env.example"
+    else:
+        example_path = tardis_dir / ".env.example"
+
+    if not example_path.exists():
+        logger.debug("No se encontró .env.example en: %s", example_path)
+        return
+
+    try:
+        lines = example_path.read_text(encoding="utf-8").splitlines()
+    except Exception as exc:
+        logger.warning("Error al leer .env.example: %s", exc)
+        return
+
+    # Extraer nombres de variable (líneas con KEY=algo, ignorando comentarios)
+    example_vars: list[str] = []
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if "=" not in stripped:
+            continue
+        # Tomar todo antes del primer =
+        var_name = stripped.split("=", 1)[0].strip()
+        # Si la línea comienza con "export ", quitarlo
+        if var_name.startswith("export "):
+            var_name = var_name[7:].strip()
+        if var_name and not var_name.startswith("#"):
+            example_vars.append(var_name)
+
+    if not example_vars:
+        return
+
+    # Comparar con las variables actuales en el entorno
+    missing = [v for v in example_vars if v not in os.environ]
+
+    if missing:
+        logger.warning(
+            "Variables de entorno no configuradas en tu .env "
+            "(revisa .env.example para los valores recomendados):\n  %s",
+            "\n  ".join(missing),
+        )
+
+
 def load_tardis_config() -> TardisConfig:
     """
     1. noco_core.config.load_env() -> carga .env (NOCO_*).
@@ -71,6 +127,9 @@ def load_tardis_config() -> TardisConfig:
         poll_interval_seconds = int(os.environ.get("TARDIS_POLL_INTERVAL_SECONDS", "60"))
     except (ValueError, TypeError):
         poll_interval_seconds = 60
+
+    # 8. Verificar si faltan variables nuevas respecto a .env.example
+    _check_missing_env_vars()
 
     return TardisConfig(
         noco_base_url=noco_base_url,

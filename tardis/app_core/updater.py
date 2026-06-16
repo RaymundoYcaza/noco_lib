@@ -20,8 +20,10 @@ Uso:
 
 import os
 import sys
+import shutil
 import logging
 import subprocess
+from datetime import datetime
 from pathlib import Path
 
 from app_core.version import load_version, get_version_parts
@@ -116,11 +118,60 @@ def check_for_updates() -> str | None:
     return None
 
 
+def _backup_env() -> None:
+    """Respalda el archivo ``.env`` antes de una actualización.
+
+    Copia el .env actual a ``%%APPDATA%%/Tardis/.env.<timestamp>.backup``
+    para que el usuario pueda recuperarlo si algo sale mal durante
+    la instalación de la nueva versión.
+
+    Si el .env no existe o no puede copiarse, se loguea el error
+    pero no se interrumpe la actualización.
+    """
+    # Determinar la ruta del .env actual (misma lógica que config.py)
+    if getattr(sys, "frozen", False):
+        env_path = Path(sys.executable).parent / ".env"
+    else:
+        env_path = Path(__file__).resolve().parent.parent / ".env"
+
+    if not env_path.exists():
+        logger.debug("No se encontró .env que respaldar en: %s", env_path)
+        return
+
+    try:
+        # Crear directorio de backups en APPDATA si no existe
+        if sys.platform == "win32":
+            appdata = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
+        else:
+            appdata = Path.home() / ".config"
+
+        backup_dir = appdata / "Tardis"
+        backup_dir.mkdir(parents=True, exist_ok=True)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_path = backup_dir / f".env.{timestamp}.backup"
+
+        shutil.copy2(str(env_path), str(backup_path))
+        logger.info(
+            "Archivo .env respaldado en: %s",
+            backup_path,
+        )
+    except Exception as exc:
+        logger.warning(
+            "No se pudo respaldar el .env antes de la actualización: %s",
+            exc,
+        )
+
+
 def download_and_install(remote_version: str) -> bool:
     """Descarga e instala la nueva versión desde la ruta de red.
 
     Busca primero un instalador Inno Setup (``Tardis-v{version}-Setup.exe``)
     y luego un ejecutable portable (``Tardis-v{version}.exe``).
+
+    Antes de ejecutar el instalador, respalda automáticamente el
+    archivo ``.env`` en ``%%APPDATA%%/Tardis/.env.<timestamp>.backup``
+    para evitar pérdida de configuración.
 
     Parameters
     ----------
@@ -147,6 +198,9 @@ def download_and_install(remote_version: str) -> bool:
                 update_dir / portable_name,
             )
             return False
+
+    # Respaldo automático del .env antes de instalar
+    _backup_env()
 
     try:
         logger.info("Ejecutando instalador: %s", installer_path)
