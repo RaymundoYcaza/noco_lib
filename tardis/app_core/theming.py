@@ -1,22 +1,22 @@
 import logging
-from pathlib import Path
 from PySide6.QtWidgets import QApplication
+
+from app_core.themes.theme_engine import apply_theme as _engine_apply_theme
 
 logger = logging.getLogger(__name__)
 
-def apply_theme(app: QApplication, theme: str = "dark") -> None:
+def apply_theme(app: QApplication, theme: str = "inorizonti") -> None:
     """
-    Lee app_core/styles/<theme>.qss y lo aplica a la aplicación.
-    Maneja FileNotFoundError con fallback a sin estilo.
-    """
-    style_dir = Path(__file__).resolve().parent / "styles"
-    qss_path = style_dir / f"{theme}.qss"
+    Aplica un tema a la aplicación Tardis.
     
-    try:
-        with open(qss_path, "r", encoding="utf-8") as f:
-            qss_content = f.read()
-        app.setStyleSheet(qss_content)
-    except FileNotFoundError:
-        logger.warning(f"Archivo de tema no encontrado: {qss_path}. Continuando sin estilo.")
-    except Exception as e:
-        logger.error(f"Error al aplicar el tema {theme}: {e}. Continuando sin estilo.")
+    Delega en ``theme_engine.apply_theme`` que carga tokens desde
+    ``app_core/themes/<theme>.json`` y genera QSS dinámicamente.
+    
+    Parameters
+    ----------
+    app : QApplication
+        Instancia de la aplicación Qt.
+    theme : str, optional
+        Nombre del tema (sin extensión), por defecto "inorizonti".
+    """
+    _engine_apply_theme(app, theme_name=theme)

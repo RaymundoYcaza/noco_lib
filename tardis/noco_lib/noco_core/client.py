@@ -197,6 +197,72 @@ class NocoClient:
         return NocoResult.ok("update", data=data, affected_count=1)
 
     # ------------------------------------------------------------------
+    # Carga de archivos adjuntos (storage upload)
+    # ------------------------------------------------------------------
+    def upload_attachment(self, file_path: str) -> NocoResult:
+        """
+        Sube un archivo adjunto al almacenamiento de NocoDB.
+
+        Realiza un POST multipart a ``/api/v2/storage/upload``.
+        Verifica que el archivo exista y no supere el límite configurado
+        en ``TARDIS_MAX_ATTACHMENT_MB`` (default 10 MB).
+
+        Parameters
+        ----------
+        file_path : str
+            Ruta local del archivo a subir.
+
+        Returns
+        -------
+        NocoResult
+            Con ``data`` conteniendo el objeto attachment de NocoDB:
+            ``{"url": ..., "title": ..., "mimetype": ..., "size": ...}``
+            en caso de éxito.
+        """
+        import os
+        import mimetypes
+        from pathlib import Path
+
+        path = Path(file_path)
+        if not path.exists():
+            return NocoResult.fail("create", f"Archivo no encontrado: {file_path}")
+
+        # Validar tamaño máximo
+        max_mb = int(os.environ.get("TARDIS_MAX_ATTACHMENT_MB", "10"))
+        max_bytes = max_mb * 1024 * 1024
+        file_size = path.stat().st_size
+        if file_size > max_bytes:
+            return NocoResult.fail(
+                "create",
+                f"El archivo supera el límite de {max_mb}MB: {file_path} ({file_size / 1024 / 1024:.1f}MB)"
+            )
+
+        # Detectar mimetype
+        mime_type, _ = mimetypes.guess_type(str(path))
+        mime_type = mime_type or "application/octet-stream"
+
+        try:
+            with open(file_path, "rb") as fh:
+                files = {"file": (path.name, fh, mime_type)}
+                ok, data, errors = self._request(
+                    "POST", "/api/v2/storage/upload", files=files
+                )
+
+            # Nota: _request establece Content-Type: application/json por defecto,
+            # pero requests sobrescribe el Content-Type a multipart/form-data
+            # cuando se pasa el parámetro 'files'.
+            if not ok:
+                return NocoResult.fail("create", errors)
+
+            if not data:
+                return NocoResult.fail("create", "La respuesta del servidor no contiene datos.")
+
+            return NocoResult.ok("create", data=data, affected_count=1)
+
+        except Exception as exc:
+            return NocoResult.fail("create", [f"Error al subir archivo: {str(exc)}"])
+
+    # ------------------------------------------------------------------
     # Atajo de uso "tabla"
     # ------------------------------------------------------------------
     def table(self, name_or_id: str, base_id: Optional[str] = None) -> "NocoTable":

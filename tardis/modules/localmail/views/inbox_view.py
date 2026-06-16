@@ -50,20 +50,21 @@ class InboxView(QWidget):
         }
         title_prefix = mode_titles.get(self.mode, "Bandeja de Entrada")
         self.title_label = QLabel(f"{title_prefix} ({mailboxes_str})")
-        self.title_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #ffffff;")
+        self.title_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #1a1a18;")
         
         self.btn_refresh = QPushButton("Actualizar")
         self.btn_refresh.setCursor(Qt.PointingHandCursor)
         self.btn_refresh.setStyleSheet("""
             QPushButton {
-                background-color: #27272a;
-                color: #ffffff;
-                border: 1px solid #3f3f46;
+                background-color: #f5f3f0;
+                color: #1a1a18;
+                border: 1px solid #dddad6;
                 padding: 6px 12px;
                 border-radius: 4px;
+                font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #3f3f46;
+                background-color: #ede9e4;
             }
         """)
         self.btn_refresh.clicked.connect(self.load)
@@ -73,18 +74,20 @@ class InboxView(QWidget):
         self.btn_archive.setCursor(Qt.PointingHandCursor)
         self.btn_archive.setStyleSheet("""
             QPushButton {
-                background-color: #2563eb;
+                background-color: #e9290c;
                 color: #ffffff;
                 border: none;
                 padding: 6px 12px;
                 border-radius: 4px;
+                font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #3b82f6;
+                background-color: #c5220a;
             }
             QPushButton:disabled {
-                background-color: #1e293b;
-                color: #64748b;
+                background-color: #f5f3f0;
+                color: #a1a1aa;
+                border: 1px solid #dddad6;
             }
         """)
         self.btn_archive.clicked.connect(self._on_archive)
@@ -113,28 +116,28 @@ class InboxView(QWidget):
         # Stylesheet for premium feel
         self.table.setStyleSheet("""
             QTableWidget {
-                background-color: #18181b;
-                alternate-background-color: #202024;
-                color: #e1e1e6;
+                background-color: #ffffff;
+                alternate-background-color: rgba(233, 41, 12, 0.03);
+                color: #1a1a18;
                 gridline-color: transparent;
-                border: 1px solid #27272a;
+                border: 1px solid #dddad6;
                 border-radius: 6px;
             }
             QTableWidget::item {
                 padding: 10px;
-                border-bottom: 1px solid #27272a;
+                border-bottom: 1px solid rgba(233, 41, 12, 0.06);
             }
             QTableWidget::item:selected {
-                background-color: #2563eb;
-                color: #ffffff;
+                background-color: rgba(233, 41, 12, 0.12);
+                color: #1a1a18;
             }
             QHeaderView::section {
-                background-color: #27272a;
-                color: #a1a1aa;
+                background-color: #f5f3f0;
+                color: #5a5a56;
                 padding: 8px;
                 font-weight: bold;
                 border: none;
-                border-bottom: 1px solid #3f3f46;
+                border-bottom: 1px solid #dddad6;
             }
         """)
 
@@ -155,7 +158,7 @@ class InboxView(QWidget):
         # Placeholder Label for empty mailboxes
         self.placeholder_label = QLabel("No hay casillas configuradas. Define TARDIS_MAILBOXES en tu archivo .env.")
         self.placeholder_label.setAlignment(Qt.AlignCenter)
-        self.placeholder_label.setStyleSheet("color: #a1a1aa; font-size: 14px;")
+        self.placeholder_label.setStyleSheet("color: #5a5a56; font-size: 14px;")
         self.placeholder_label.setVisible(False)
         layout.addWidget(self.placeholder_label)
 
@@ -247,14 +250,14 @@ class InboxView(QWidget):
                     item_date.setFont(bold_font)
                     
                     # Unread messages get a slightly brighter text
-                    bright_color = QColor("#ffffff")
+                    bright_color = QColor("#1a1a18")
                     item_priority.setForeground(bright_color)
                     item_from.setForeground(bright_color)
                     item_title.setForeground(bright_color)
                     item_date.setForeground(bright_color)
                 else:
                     # Read messages get a slightly muted text
-                    muted_color = QColor("#a1a1aa")
+                    muted_color = QColor("#5a5a56")
                     item_priority.setForeground(muted_color)
                     item_from.setForeground(muted_color)
                     item_title.setForeground(muted_color)
@@ -359,13 +362,12 @@ class InboxView(QWidget):
             menu = QMenu(self)
             menu.setStyleSheet("""
                 QMenu {
-                    background-color: #18181b;
-                    color: #e1e1e6;
-                    border: 1px solid #27272a;
+                    background-color: #ffffff;
+                    color: #1a1a18;
+                    border: 1px solid #dddad6;
                 }
                 QMenu::item:selected {
-                    background-color: #2563eb;
-                    color: #ffffff;
+                    background-color: #ede9e4;
                 }
             """)
 

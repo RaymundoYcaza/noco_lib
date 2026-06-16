@@ -107,6 +107,9 @@ class LocalMailScreen(QWidget):
         # Reader marks email as read → update list row
         self._reader.email_read.connect(self._email_list.mark_row_as_read)
 
+        # "+ Nuevo mensaje" button → open compose
+        self._sidebar_view.compose_requested.connect(self._on_compose_requested)
+
     def _on_node_selected(self, node) -> None:
         if node.folder is None:
             return
@@ -124,10 +127,23 @@ class LocalMailScreen(QWidget):
         if not restored:
             self._sidebar_view.select_node_by_id("all:inbox")
 
+    def _on_compose_requested(self) -> None:
+        """Abre el compositor de correo en una ventana flotante."""
+        _open_composer_internal(self._app, self._client, self._mailboxes)
+
 
 # ═══════════════════════════════════════════════════════════════════════
 #  Module entry point
 # ═══════════════════════════════════════════════════════════════════════
+
+
+def _open_composer_internal(app: MainWindow, client: NocoClient, mailboxes: list[str]) -> None:
+    """Crea y abre un compositor de correo en una ventana flotante."""
+    composer = ComposerView(app, client, mailboxes)
+    dock = app.add_floating_window(composer, "Redactar correo")
+    if not hasattr(app, "_composer_windows"):
+        app._composer_windows = []
+    app._composer_windows.append((composer, dock))
 
 
 def register(app: MainWindow, client: NocoClient) -> None:
@@ -151,13 +167,9 @@ def register(app: MainWindow, client: NocoClient) -> None:
         position="top",     # Always visible at the top of the nav bar
     )
 
-    # 3. Menu actions (unchanged)
+    # 3. Menu actions (unchanged — but "Redactar" is now also available via the button)
     def open_composer() -> None:
-        composer = ComposerView(app, client, mailboxes)
-        dock = app.add_floating_window(composer, "Redactar correo")
-        if not hasattr(app, "_composer_windows"):
-            app._composer_windows = []
-        app._composer_windows.append((composer, dock))
+        _open_composer_internal(app, client, mailboxes)
 
     app.add_menu_action("LocalMail", "Redactar", open_composer)
 

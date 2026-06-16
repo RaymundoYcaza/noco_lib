@@ -18,7 +18,15 @@ class NavButton(QPushButton):
       - ``NavButton`` — base style (transparent background, no border)
       - ``NavButton:hover`` — hover highlight
       ``NavButton:checked`` — active module indicator (accent left border)
+
+    El color del icono se actualiza dinámicamente desde Python:
+    - Inactivo: ``#5a5a56`` (``color.nav.icon``)
+    - Activo: ``#e9290c`` (``color.nav.icon.active``)
     """
+
+    # Colores del tema Inorizonti para los iconos de navegación
+    _COLOR_INACTIVE = "#5a5a56"
+    _COLOR_ACTIVE = "#e9290c"
 
     def __init__(
         self,
@@ -43,30 +51,39 @@ class NavButton(QPushButton):
         super().__init__(parent)
         self._module_id = module_id or label
         self._label = label
+        self._icon_name = icon_name
 
         self.setFixedSize(52, 52)
         self.setFlat(True)
         self.setCheckable(True)
         self.setToolTip(label)
 
-        # Build the icon with the standard light color on dark background
-        try:
-            self._icon = qta.icon(icon_name, color="#e0e0e0")
-        except Exception:
-            logging.getLogger("tardis").exception(
-                "Failed to create qtawesome icon '%s' for NavButton '%s'",
-                icon_name,
-                label,
-            )
-            self._icon = QIcon()
-        self.setIcon(self._icon)
+        # Build the icon with the inactive color (tema Inorizonti claro)
+        self._update_icon_color()
         self.setIconSize(QSize(28, 28))
 
         # Ensure the button can shrink properly inside the nav bar
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
+        # Conectar señal toggled a la actualización de color del icono
+        self.toggled.connect(self._update_icon_color)
+
         # Initial active state
         self._active = False
+
+    def _update_icon_color(self) -> None:
+        """Actualiza el color del icono según el estado activo/inactivo."""
+        color = self._COLOR_ACTIVE if self.isChecked() else self._COLOR_INACTIVE
+        try:
+            self._icon = qta.icon(self._icon_name, color=color)
+        except Exception:
+            logging.getLogger("tardis").exception(
+                "Failed to update qtawesome icon '%s' for NavButton '%s'",
+                self._icon_name,
+                self._label,
+            )
+            self._icon = QIcon()
+        self.setIcon(self._icon)
 
     # ── active property ────────────────────────────────────────────────
 

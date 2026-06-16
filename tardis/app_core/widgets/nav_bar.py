@@ -4,8 +4,7 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QSizePolicy,
 )
-from PySide6.QtCore import Qt, Signal, QSize
-from PySide6.QtGui import QColor
+from PySide6.QtCore import Qt, Signal
 
 from app_core.widgets.nav_button import NavButton
 
@@ -60,6 +59,7 @@ class NavBar(QWidget):
         self._top_layout = QVBoxLayout(self._top_widget)
         self._top_layout.setSpacing(0)
         self._top_layout.setContentsMargins(0, 0, 0, 0)
+
         self._top_layout.addStretch()  # buttons pack toward bottom of top zone
         self._layout.addWidget(self._top_widget)
 

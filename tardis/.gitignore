@@ -15,3 +15,5 @@ dist/
 venv/
 ENV/
 env/
+tardis_signatures.json
+tardis_signatures.json

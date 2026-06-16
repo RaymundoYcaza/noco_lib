@@ -1,11 +1,16 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView, QLabel
+import json
+import logging
+
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget,
+    QTableWidgetItem, QAbstractItemView, QHeaderView, QLabel,
+)
 from PySide6.QtCore import Qt, Signal, Slot
 from PySide6.QtGui import QFont, QColor
 import qtawesome as qta
 from noco_lib.noco_core.client import NocoClient
 from app_core.concurrency import run_async
 from modules.localmail import service
-import logging
 
 class EmailListView(QWidget):
     email_selected = Signal(int)  # Emite el ID del correo cuando se hace un clic simple
@@ -34,20 +39,20 @@ class EmailListView(QWidget):
         self.btn_refresh.setCursor(Qt.PointingHandCursor)
         self.btn_refresh.setStyleSheet("""
             QPushButton {
-                background-color: #27272a;
-                color: #ffffff;
-                border: 1px solid #3f3f46;
+                background-color: #f5f3f0;
+                color: #1a1a18;
+                border: 1px solid #dddad6;
                 padding: 6px 12px;
                 border-radius: 4px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #3f3f46;
+                background-color: #ede9e4;
             }
             QPushButton:disabled {
-                background-color: #18181b;
-                color: #71717a;
-                border-color: #27272a;
+                background-color: #f5f3f0;
+                color: #a1a1aa;
+                border-color: #dddad6;
             }
         """)
         self.btn_refresh.clicked.connect(self.refresh)
@@ -69,28 +74,28 @@ class EmailListView(QWidget):
         
         self.table.setStyleSheet("""
             QTableWidget {
-                background-color: #18181b;
-                alternate-background-color: #202024;
-                color: #e1e1e6;
+                background-color: #ffffff;
+                alternate-background-color: rgba(233, 41, 12, 0.03);
+                color: #1a1a18;
                 gridline-color: transparent;
-                border: 1px solid #27272a;
+                border: 1px solid #dddad6;
                 border-radius: 6px;
             }
             QTableWidget::item {
                 padding: 10px;
-                border-bottom: 1px solid #27272a;
+                border-bottom: 1px solid rgba(233, 41, 12, 0.06);
             }
             QTableWidget::item:selected {
-                background-color: #2563eb;
-                color: #ffffff;
+                background-color: rgba(233, 41, 12, 0.12);
+                color: #1a1a18;
             }
             QHeaderView::section {
-                background-color: #27272a;
-                color: #a1a1aa;
+                background-color: #f5f3f0;
+                color: #5a5a56;
                 padding: 8px;
                 font-weight: bold;
                 border: none;
-                border-bottom: 1px solid #3f3f46;
+                border-bottom: 1px solid #dddad6;
             }
         """)
         
@@ -109,7 +114,7 @@ class EmailListView(QWidget):
         # Label de placeholder
         self.placeholder_label = QLabel("No hay casillas configuradas.")
         self.placeholder_label.setAlignment(Qt.AlignCenter)
-        self.placeholder_label.setStyleSheet("color: #a1a1aa; font-size: 14px;")
+        self.placeholder_label.setStyleSheet("color: #5a5a56; font-size: 14px;")
         self.placeholder_label.setVisible(False)
         layout.addWidget(self.placeholder_label)
 
@@ -246,6 +251,23 @@ class EmailListView(QWidget):
                 title = email.get("title", "") or ""
                 created_at = email.get("CreatedAt", "") or ""
                 is_read = email.get("read")
+
+                # Detectar si el correo tiene adjuntos
+                has_attachment = False
+                att_data = email.get("Attachment")
+                if att_data:
+                    if isinstance(att_data, list) and len(att_data) > 0:
+                        has_attachment = True
+                    elif isinstance(att_data, str):
+                        try:
+                            parsed = json.loads(att_data)
+                            if (isinstance(parsed, list) and len(parsed) > 0) or isinstance(parsed, dict):
+                                has_attachment = True
+                        except (json.JSONDecodeError, ValueError):
+                            pass
+
+                # Agregar indicador de adjunto al asunto
+                display_title = f"{title}  📎" if has_attachment else title
                 
                 # Mapear estado de lectura
                 read_bool = is_read in [True, 1, "true"]
@@ -267,7 +289,7 @@ class EmailListView(QWidget):
                 formatted_date = created_at[:16] if len(created_at) >= 16 else created_at
                 
                 item_from = QTableWidgetItem(from_user)
-                item_title = QTableWidgetItem(title)
+                item_title = QTableWidgetItem(display_title)
                 item_date = QTableWidgetItem(formatted_date)
                 
                 # Aplicar peso y color de la fuente según si está leído o no
@@ -279,12 +301,12 @@ class EmailListView(QWidget):
                     item_title.setFont(bold_font)
                     item_date.setFont(bold_font)
                     
-                    bright_color = QColor("#ffffff")
-                    item_from.setForeground(bright_color)
-                    item_title.setForeground(bright_color)
-                    item_date.setForeground(bright_color)
+                    dark_color = QColor("#1a1a18")
+                    item_from.setForeground(dark_color)
+                    item_title.setForeground(dark_color)
+                    item_date.setForeground(dark_color)
                 else:
-                    muted_color = QColor("#a1a1aa")
+                    muted_color = QColor("#5a5a56")
                     item_from.setForeground(muted_color)
                     item_title.setForeground(muted_color)
                     item_date.setForeground(muted_color)
@@ -322,13 +344,13 @@ class EmailListView(QWidget):
                     item_priority.setFont(normal_font)
                     if item_from:
                         item_from.setFont(normal_font)
-                        item_from.setForeground(QColor("#a1a1aa"))
+                        item_from.setForeground(QColor("#5a5a56"))
                     if item_title:
                         item_title.setFont(normal_font)
-                        item_title.setForeground(QColor("#a1a1aa"))
+                        item_title.setForeground(QColor("#5a5a56"))
                     if item_date:
                         item_date.setFont(normal_font)
-                        item_date.setForeground(QColor("#a1a1aa"))
+                        item_date.setForeground(QColor("#5a5a56"))
                     break
         except Exception as e:
             logging.getLogger("tardis").exception("Exception in EmailListView.mark_row_as_read")

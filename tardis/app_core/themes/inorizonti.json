@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "name": "Inorizonti",
+    "description": "Tema oficial Inorizonti — claro con acento rojo",
+    "version": "1.0",
+    "author": "Tardis"
+  },
+  "color.bg.primary": "#ffffff",
+  "color.bg.secondary": "#f5f3f0",
+  "color.bg.tertiary": "#ede9e4",
+  "color.bg.accent": "#e9290c",
+  "color.bg.accent.hover": "#c5220a",
+  "color.bg.accent.secondary": "#f57c00",
+  "color.text.primary": "#1a1a18",
+  "color.text.secondary": "#5a5a56",
+  "color.text.on.accent": "#ffffff",
+  "color.border.primary": "#dddad6",
+  "color.border.accent": "#e9290c",
+  "color.nav.bg": "#f5f3f0",
+  "color.nav.icon": "#5a5a56",
+  "color.nav.icon.active": "#e9290c",
+  "color.success": "#2e7d32",
+  "color.error": "#c62828",
+  "color.warning": "#f57c00",
+  "color.info": "#1565c0",
+  "color.unread.dot": "#e9290c",
+  "color.priority.alta": "#e9290c",
+  "color.priority.media": "#f57c00",
+  "color.priority.baja": "#2e7d32"
+}

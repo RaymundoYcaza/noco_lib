@@ -18,6 +18,7 @@ from app_core.main_window import MainWindow
 from app_core.module_registry import discover_and_register
 from app_core.theming import apply_theme
 from app_core.views.settings_view import SettingsView
+from app_core.splash import SplashScreen
 
 def main() -> None:
     # Initialize logging first
@@ -36,14 +37,20 @@ def main() -> None:
     # 3. Inicializar QApplication
     app = QApplication(sys.argv)
     app.setApplicationName("Tardis")
+
+    # 4. Mostrar splash screen mientras se inicializa el resto
+    logo_path = tardis_dir / "shared" / "brands" / "inorizonti" / "logo.svg"
+    splash = SplashScreen(logo_path)
+    splash.show()
+    app.processEvents()
     
-    # 4. Crear la ventana principal de la aplicación
+    # 5. Crear la ventana principal de la aplicación
     window = MainWindow(client=client, config=config)
     
-    # 5. Descubrir y registrar módulos modularmente
+    # 6. Descubrir y registrar módulos modularmente
     module_info = discover_and_register(window, client)
     
-    # 6. Crear y registrar la pantalla de Configuración
+    # 7. Crear y registrar la pantalla de Configuración
     settings_view = SettingsView(config, module_info, client, window)
     window.register_nav_item(
         module_id="settings",
@@ -53,16 +60,25 @@ def main() -> None:
         position="bottom",
     )
     
-    # 7. Aplicar tema antes de mostrar la ventana
-    apply_theme(app, "dark")
+    # 8. Aplicar tema Inorizonti (claro con acento rojo) antes de mostrar la ventana
+    apply_theme(app, "inorizonti")
     
-    # 8. Restore last active module after all modules are registered
+    # 9. Restore last active module after all modules are registered
     window._restore_last_module()
-    
-    # 9. Mostrar la ventana principal
-    window.show()
-    
-    # 10. Iniciar el bucle de eventos de la aplicación
+
+    # 10. Iniciar notificador de bandeja de entrada
+    from app_core.notifier import InboxNotifier
+    notifier = InboxNotifier(client, config, window)
+    notifier.new_emails_arrived.connect(notifier.notify)
+    notifier.start()
+    window._notifier = notifier  # Mantener referencia para evitar recolección de basura
+    settings_view.set_notifier(notifier)  # Pasar al panel de Configuración
+
+    # 11. Cerrar splash y mostrar la ventana principal maximizada
+    splash.close()
+    window.showMaximized()
+
+    # 11. Iniciar el bucle de eventos de la aplicación
     sys.exit(app.exec())
 
 if __name__ == "__main__":

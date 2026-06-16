@@ -1,84 +1,141 @@
-from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QGraphicsOpacityEffect
-from PySide6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, Slot, QEvent, QObject
+from typing import Callable
+from PySide6.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QGraphicsOpacityEffect
+from PySide6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, Slot, QEvent
 import logging
 
+
 class Toast(QWidget):
+    """Notificación tipo Toast con soporte opcional de botón de acción.
+
+    Parámetros
+    ----------
+    parent : QWidget
+        Widget padre (normalmente MainWindow).
+    text : str
+        Texto del mensaje.
+    level : str
+        Nivel: "info", "success", "warning", "error".
+    duration_ms : int
+        Duración en milisegundos antes de cerrarse.
+    action_label : str | None
+        Texto del botón de acción (None = sin botón).
+    action_callback : Callable | None
+        Función a ejecutar al hacer clic en el botón de acción.
+    """
+
     _active_toasts = []
 
-    def __init__(self, parent: QWidget, text: str, level: str = "info", duration_ms: int = 4000):
+    def __init__(
+        self,
+        parent: QWidget,
+        text: str,
+        level: str = "info",
+        duration_ms: int = 4000,
+        action_label: str | None = None,
+        action_callback: Callable | None = None,
+    ):
         super().__init__(parent)
         self.text = text
         self.level = level.lower()
         self.duration_ms = duration_ms
-        
+        self._action_label = action_label
+        self._action_callback = action_callback
+
         self.init_ui()
-        
-        # Position self initially
         self.adjust_size_and_position()
-        
-        # Add to active toasts list
+
         Toast._active_toasts.append(self)
-        
-        # Reposition all active toasts (stack them)
         Toast.reposition_all()
-        
-        # Setup opacity effect for fade animation
+
         self.opacity_effect = QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(self.opacity_effect)
         self.opacity_effect.setOpacity(0.0)
-        
-        # Show and start fade-in animation
+
         self.show()
         self.raise_()
         self.fade_in()
-        
-        # Start auto-close timer using QTimer.singleShot
+
         QTimer.singleShot(self.duration_ms, self.fade_out)
-        
-        # Install event filter on parent to follow resize events
+
         if parent:
             parent.installEventFilter(self)
 
     def init_ui(self):
         self.setObjectName("ToastWidget")
-        
-        # Transparent background for the widget so rounded borders show correctly
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setAttribute(Qt.WA_StyledBackground, True)
-        
-        # Layout
+
         layout = QHBoxLayout(self)
         layout.setContentsMargins(16, 12, 16, 12)
         layout.setSpacing(8)
-        
-        # Text label
+
+        # Texto
         self.label = QLabel(self.text)
         self.label.setWordWrap(True)
         self.label.setStyleSheet("color: #ffffff; font-size: 13px; font-weight: bold;")
-        layout.addWidget(self.label)
-        
-        # Style based on level
+        layout.addWidget(self.label, stretch=1)
+
+        # Botón de acción (opcional)
+        self._action_btn: QPushButton | None = None
+        if self._action_label and self._action_callback:
+            self._action_btn = QPushButton(self._action_label)
+            self._action_btn.setCursor(Qt.PointingHandCursor)
+            self._action_btn.setStyleSheet("""
+                QPushButton {
+                    color: #ffffff; background: transparent;
+                    border: none; font-weight: bold; font-size: 12px;
+                    text-decoration: underline; padding: 4px 8px;
+                }
+                QPushButton:hover {
+                    background: rgba(255,255,255,0.15);
+                    border-radius: 3px;
+                }
+            """)
+            self._action_btn.clicked.connect(self._on_action_clicked)
+            layout.addWidget(self._action_btn)
+
+        # Colores según nivel
         bg_colors = {
-            "info": "rgba(37, 99, 235, 0.95)",    # Blue-ish
-            "error": "rgba(220, 38, 38, 0.95)",   # Red-ish
-            "success": "rgba(22, 163, 74, 0.95)"  # Green-ish
+            "info": "rgba(21, 101, 192, 0.95)",     # Azul info
+            "success": "rgba(46, 125, 50, 0.95)",   # Verde éxito
+            "warning": "rgba(245, 124, 0, 0.95)",   # Naranja advertencia
+            "error": "rgba(198, 40, 40, 0.95)",     # Rojo error
         }
         border_colors = {
-            "info": "#3b82f6",
-            "error": "#f87171",
-            "success": "#4ade80"
+            "info": "#1565c0",
+            "success": "#2e7d32",
+            "warning": "#f57c00",
+            "error": "#c62828",
         }
-        
-        bg_color = bg_colors.get(self.level, bg_colors["info"])
-        border_color = border_colors.get(self.level, border_colors["info"])
-        
+        bg = bg_colors.get(self.level, bg_colors["info"])
+        border = border_colors.get(self.level, border_colors["info"])
+
         self.setStyleSheet(f"""
             QWidget#ToastWidget {{
-                background-color: {bg_color};
-                border: 1px solid {border_color};
+                background-color: {bg};
+                border: 1px solid {border};
                 border-radius: 6px;
             }}
         """)
+
+    def _on_action_clicked(self) -> None:
+        """Ejecuta el callback de acción y cierra el toast."""
+        try:
+            if self._action_callback:
+                self._action_callback()
+        except Exception as e:
+            logging.getLogger("tardis").exception("Error en callback de acción del toast: %s", e)
+        finally:
+            self.close_and_remove()
+
+    def mousePressEvent(self, event):
+        """Cierra el toast al hacer clic en cualquier parte del cuerpo.
+
+        Nota: Los clics en el botón de acción son manejados por el propio
+        botón (QPushButton.clicked), no por este evento.
+        """
+        self.close_and_remove()
+        super().mousePressEvent(event)
 
     def adjust_size_and_position(self):
         self.setMaximumWidth(350)
@@ -87,26 +144,17 @@ class Toast(QWidget):
 
     @classmethod
     def reposition_all(cls):
-        """
-        Stacks all active toasts vertically at the bottom-right corner of their parent window.
-        """
         for i, toast in enumerate(cls._active_toasts):
             parent = toast.parentWidget()
             if not parent:
                 continue
-                
             parent_w = parent.width()
             parent_h = parent.height()
-            
-            # Start margin: 16px from bottom
-            # Gap: 8px between toasts
             y_offset = 16
             for prev_toast in cls._active_toasts[:i]:
                 y_offset += prev_toast.height() + 8
-                
             x = parent_w - 16 - toast.width()
             y = parent_h - 16 - toast.height() - (y_offset - 16)
-            
             toast.move(x, y)
 
     def fade_in(self):
@@ -119,7 +167,6 @@ class Toast(QWidget):
 
     @Slot()
     def fade_out(self):
-        # Prevent crash if widget is already being destroyed or has no opacity effect
         try:
             self.anim = QPropertyAnimation(self.opacity_effect, b"opacity")
             self.anim.setDuration(250)
@@ -138,8 +185,8 @@ class Toast(QWidget):
                 Toast._active_toasts.remove(self)
             Toast.reposition_all()
             self.deleteLater()
-        except Exception as e:
-            logging.getLogger("tardis").exception("Exception in Toast.close_and_remove")
+        except Exception:
+            logging.getLogger("tardis").exception("Error en Toast.close_and_remove")
 
     def closeEvent(self, event):
         try:

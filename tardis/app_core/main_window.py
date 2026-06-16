@@ -1,6 +1,7 @@
 import sys
 import logging
 from typing import Callable
+
 from pathlib import Path
 
 from PySide6.QtWidgets import (
@@ -353,19 +354,41 @@ class MainWindow(QMainWindow):
 
     # ── Notifications ─────────────────────────────────────────────
 
-    def show_notification(self, text: str, level: str = "info") -> None:
-        """Show a toast notification + status bar message."""
+    def show_notification(
+        self,
+        text: str,
+        level: str = "info",
+        duration_ms: int = 4000,
+        action_label: str | None = None,
+        action_callback: Callable | None = None,
+    ) -> None:
+        """
+        Muestra una notificación tipo Toast en la esquina inferior derecha.
+
+        Parameters
+        ----------
+        text : str
+            Texto del mensaje.
+        level : str
+            Nivel: "info", "success", "warning", "error".
+        duration_ms : int
+            Duración en milisegundos.
+        action_label : str | None
+            Texto opcional para el botón de acción.
+        action_callback : Callable | None
+            Función a ejecutar al hacer clic en el botón de acción.
+        """
         status_bar = self.statusBar()
         status_bar.setStyleSheet("")
         status_bar.setObjectName(f"status-{level}")
         status_bar.style().unpolish(status_bar)
         status_bar.style().polish(status_bar)
-        status_bar.showMessage(text, 5000)
+        status_bar.showMessage(text, min(duration_ms, 5000))
 
         try:
-            Toast(self, text, level)
+            Toast(self, text, level, duration_ms, action_label, action_callback)
         except Exception:
-            logger.exception("Exception displaying Toast notification")
+            logger.exception("Error al mostrar notificación Toast")
 
     # ── Sidebar nodes ─────────────────────────────────────────────
 

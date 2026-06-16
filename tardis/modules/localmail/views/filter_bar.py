@@ -19,14 +19,14 @@ class FilterBarView(QWidget):
         self.search_input.setPlaceholderText("Search subject or sender...")
         self.search_input.setStyleSheet("""
             QLineEdit {
-                background-color: #18181b;
-                color: #e1e1e6;
-                border: 1px solid #27272a;
+                background-color: #ffffff;
+                color: #1a1a18;
+                border: 1px solid #dddad6;
                 border-radius: 4px;
                 padding: 6px 10px;
             }
             QLineEdit:focus {
-                border-color: #2563eb;
+                border-color: #e9290c;
             }
         """)
         self.search_input.textChanged.connect(self._on_filter_changed)
@@ -36,9 +36,9 @@ class FilterBarView(QWidget):
         self.priority_combo.addItems(["All", "Baja", "Media", "Alta"])
         self.priority_combo.setStyleSheet("""
             QComboBox {
-                background-color: #18181b;
-                color: #e1e1e6;
-                border: 1px solid #27272a;
+                background-color: #ffffff;
+                color: #1a1a18;
+                border: 1px solid #dddad6;
                 border-radius: 4px;
                 padding: 6px 10px;
                 min-width: 100px;
@@ -47,9 +47,9 @@ class FilterBarView(QWidget):
                 border: none;
             }
             QComboBox QAbstractItemView {
-                background-color: #18181b;
-                color: #e1e1e6;
-                selection-background-color: #2563eb;
+                background-color: #ffffff;
+                color: #1a1a18;
+                selection-background-color: #ede9e4;
             }
         """)
         self.priority_combo.currentTextChanged.connect(self._on_filter_changed)

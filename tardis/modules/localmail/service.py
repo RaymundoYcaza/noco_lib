@@ -1,6 +1,7 @@
 import sys
 import uuid
 import datetime
+import logging
 from typing import Any
 from pathlib import Path
 
@@ -126,10 +127,36 @@ def move_to_trash(client: NocoClient, email_id: int) -> NocoResult:
     return client.update_records(table.table_id, [{"Id": email_id, "folder": "trash"}])
 
 def send_email(client: NocoClient, from_user: str, to_users: list[str], subject: str, body: str,
-               cc_users: list[str] | None = None, priority: str = "Media") -> NocoResult:
+               cc_users: list[str] | None = None, priority: str = "Media",
+               reply_to_uuid: str = "",
+               thread_uuid_override: str | None = None,
+               attachments: list[str] | None = None) -> NocoResult:
     """
-    firma de sección 2.6:
-    send_email(client, from_user: str, to_users: list[str], subject: str, body: str, cc_users: list[str] | None = None, priority: str = "Media")
+    Envía un correo a los destinatarios especificados.
+
+    Parameters
+    ----------
+    client : NocoClient
+        Instancia del cliente NocoDB.
+    from_user : str
+        Remitente del correo.
+    to_users : list[str]
+        Lista de destinatarios principales.
+    subject : str
+        Asunto del correo.
+    body : str
+        Cuerpo del mensaje.
+    cc_users : list[str] | None
+        Lista de destinatarios en copia.
+    priority : str
+        Prioridad del correo ("Baja", "Media", "Alta").
+    reply_to_uuid : str
+        UUID del mensaje original al que se responde (vacío si no es respuesta).
+    thread_uuid_override : str | None
+        Si se proporciona, usa este valor como thread_uuid en lugar de generar uno nuevo.
+    attachments : list[str] | None
+        Lista de rutas de archivos locales para adjuntar.
+        Cada archivo se sube a NocoDB vía client.upload_attachment().
     """
     to_users_valid = [u.strip() for u in to_users if u and u.strip()] if to_users else []
     cc_users_valid = [u.strip() for u in cc_users if u and u.strip()] if cc_users else []
@@ -147,7 +174,21 @@ def send_email(client: NocoClient, from_user: str, to_users: list[str], subject:
     if priority not in ["Baja", "Media", "Alta"]:
         priority = "Media"
 
+    # Procesar adjuntos: subir cada archivo a NocoDB antes de crear el registro
+    attachment_objects: list[dict] = []
+    attachment_errors: list[str] = []
+    if attachments:
+        for file_path in attachments:
+            upload_result = client.upload_attachment(file_path)
+            if upload_result.success:
+                attachment_objects.append(upload_result.data)
+            else:
+                err_msg = upload_result.errors[0] if upload_result.errors else f"Error al subir {file_path}"
+                attachment_errors.append(err_msg)
+                logging.getLogger("tardis").warning("Error al subir adjunto %s: %s", file_path, err_msg)
+
     message_uuid = str(uuid.uuid4())
+    thread_uuid = thread_uuid_override if thread_uuid_override else message_uuid
     now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
     to_str = "; ".join(to_users_valid)
@@ -170,14 +211,17 @@ def send_email(client: NocoClient, from_user: str, to_users: list[str], subject:
             "priority": priority,
             "folder": "inbox",
             "mailbox_owner": recipient,
-            "read": False,  # Python bool True/False (will be evaluated to JSON true/false)
+            "read": False,
             "message_uuid": message_uuid,
-            "thread_uuid": message_uuid,
-            "reply_to_uuid": "",
+            "thread_uuid": thread_uuid,
+            "reply_to_uuid": reply_to_uuid,
             "message_source": "tardis",
             "schema_version": "1.0.0",
             "client_updated_at": now_iso
         }
+        # Agregar adjuntos si los hay
+        if attachment_objects:
+            payload["Attachment"] = attachment_objects
         res = table.create(payload)
         if res.success:
             success_count += 1
@@ -189,6 +233,8 @@ def send_email(client: NocoClient, from_user: str, to_users: list[str], subject:
     meta = {}
     if partial_errors:
         meta["partial_errors"] = partial_errors
+    if attachment_errors:
+        meta["attachment_errors"] = attachment_errors
 
     if success_count > 0:
         return NocoResult.ok(
@@ -206,6 +252,22 @@ def send_email(client: NocoClient, from_user: str, to_users: list[str], subject:
             table="DIR_LOCAL-MAIL",
             meta=meta
         )
+
+
+def restore_email(client: NocoClient, email_id: int, mailbox_id: str) -> NocoResult:
+    """
+    Restaura un correo archivado o en la papelera a la bandeja de entrada.
+
+    update([{"Id": email_id, "folder": "inbox", "mailbox_owner": mailbox_id}])
+    """
+    if not isinstance(email_id, int) or email_id <= 0:
+        return NocoResult.fail("update", "email_id inválido", table="DIR_LOCAL-MAIL")
+
+    table = client.table("DIR_LOCAL-MAIL")
+    if table.is_unresolved():
+        return NocoResult.fail("update", f"No se pudo resolver la tabla '{table.name}': {table.resolution_error}", table=table.name)
+
+    return client.update_records(table.table_id, [{"Id": email_id, "folder": "inbox", "mailbox_owner": mailbox_id}])
 
 def notify(client: NocoClient, to_users: list[str], subject: str, body: str, module_origin: str) -> NocoResult:
     """

@@ -23,6 +23,7 @@ class TardisConfig:
     ai_provider: str       # default "ollama"
     ai_model: str          # default "gemma3:27b"
     ai_base_url: str       # default "http://localhost:11434"
+    poll_interval_seconds: int = 60  # intervalo de sondeo de bandeja de entrada
 
 def load_tardis_config() -> TardisConfig:
     """
@@ -65,6 +66,12 @@ def load_tardis_config() -> TardisConfig:
     ai_model = os.environ.get("TARDIS_AI_MODEL", "gemma3:27b")
     ai_base_url = os.environ.get("TARDIS_AI_BASE_URL", "http://localhost:11434")
 
+    # 7. Intervalo de sondeo de notificaciones
+    try:
+        poll_interval_seconds = int(os.environ.get("TARDIS_POLL_INTERVAL_SECONDS", "60"))
+    except (ValueError, TypeError):
+        poll_interval_seconds = 60
+
     return TardisConfig(
         noco_base_url=noco_base_url,
         noco_token=noco_token,
@@ -75,5 +82,6 @@ def load_tardis_config() -> TardisConfig:
         ai_provider=ai_provider,
         ai_model=ai_model,
         ai_base_url=ai_base_url,
+        poll_interval_seconds=poll_interval_seconds,
     )
 
