@@ -4,8 +4,12 @@ import sys
 from pathlib import Path
 from dataclasses import dataclass
 
-# Path helpers
-tardis_dir = Path(__file__).resolve().parent.parent
+# ── Resolución de ruta raíz (source / frozen) ──────────────────────
+if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+    tardis_dir = Path(sys._MEIPASS).resolve()
+else:
+    tardis_dir = Path(__file__).resolve().parent.parent
+
 if str(tardis_dir) not in sys.path:
     sys.path.insert(0, str(tardis_dir))
 

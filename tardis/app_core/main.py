@@ -2,8 +2,13 @@ import sys
 import logging
 from pathlib import Path
 
+# ── Resolución de ruta raíz (source / frozen) ──────────────────────
+if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+    tardis_dir = Path(sys._MEIPASS).resolve()
+else:
+    tardis_dir = Path(__file__).resolve().parent.parent
+
 # Add paths to sys.path
-tardis_dir = Path(__file__).resolve().parent.parent
 if str(tardis_dir) not in sys.path:
     sys.path.insert(0, str(tardis_dir))
 

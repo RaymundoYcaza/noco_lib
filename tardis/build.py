@@ -53,16 +53,43 @@ VERSION = os.environ.get("TARDIS_BUILD_VERSION") or load_version()
 def _base_cmd() -> list[str]:
     """Construye la lista base de argumentos para PyInstaller."""
     cmd = [
-        "pyinstaller",
+        sys.executable, "-m", "PyInstaller",
         "--windowed",  # sin consola
         "--name", f"Tardis-v{VERSION}",
         "--distpath", str(DIST_DIR),
         "--workpath", str(BUILD_DIR),
         "--specpath", str(BUILD_DIR),
         "--add-data", f"{ASSETS_DIR}{os.pathsep}shared",
-        "--hidden-import", "PySide6.QtSvg",
-        "--hidden-import", "PySide6.QtWebEngineWidgets",
+        "--add-data", f"{ROOT / 'noco_lib'}{os.pathsep}noco_lib",
+        "--add-data", f"{ROOT / 'ai_lib'}{os.pathsep}ai_lib",
+        # modules/ como datos garantiza que pkgutil.iter_modules() funcione
+        "--add-data", f"{ROOT / 'modules'}{os.pathsep}modules",
+        "--paths", str(ROOT),  # tardis/ — para que PyInstaller analice imports de modules/
+        "--runtime-hook", str(ROOT / "scripts" / "rthook_noco_lib.py"),
+        # Paquetes locales cargados dinámicamente (importlib / pkgutil)
+        "--hidden-import", "modules.localmail",
+        "--hidden-import", "modules.pdf_export",
+        "--hidden-import", "modules.ai_corrections",
+        # Dependencias de terceros usadas por noco_lib, ai_lib y módulos
+        "--hidden-import", "requests",
+        "--hidden-import", "jsonschema",
+        "--hidden-import", "dotenv",
         "--hidden-import", "qtawesome",
+        "--hidden-import", "markupsafe",
+        # Paquetes pesados: collect-all recoge submodules, datos y binarios
+        "--collect-all", "reportlab",
+        "--collect-all", "mistune",
+        "--collect-all", "pikepdf",
+        "--collect-all", "jinja2",
+        # Qt extras
+        "--hidden-import", "PySide6.QtSvg",
+        "--hidden-import", "PySide6.QtSvgWidgets",
+        "--hidden-import", "PySide6.QtWebEngineWidgets",
+        "--hidden-import", "PySide6.QtWebEngineCore",
+        "--hidden-import", "PySide6.QtMultimedia",
+        "--hidden-import", "PySide6.QtPrintSupport",
+        # Recolectar plugins Qt SVG para que QSvgRenderer funcione
+        "--collect-binaries", "PySide6.QtSvg",
     ]
     # Icono
     ico = ROOT / "shared" / "brands" / "inorizonti" / "logo.ico"
@@ -71,6 +98,10 @@ def _base_cmd() -> list[str]:
     # .env.example
     if ENV_EXAMPLE.exists():
         cmd.extend(["--add-data", f"{ENV_EXAMPLE}{os.pathsep}."])
+    # VERSION (único punto de verdad para la versión)
+    version_file = ROOT / "VERSION"
+    if version_file.exists():
+        cmd.extend(["--add-data", f"{version_file}{os.pathsep}."])
     return cmd
 
 
@@ -79,7 +110,7 @@ def build_dir() -> None:
     cmd = _base_cmd() + ["--onedir", str(ROOT / "app_core" / "main.py")]
     print(f"Ejecutando: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
-    print(f"✅ Build completado: {DIST_DIR / f'Tardis-v{VERSION}'}")
+    print(f"[OK] Build completado: {DIST_DIR / f'Tardis-v{VERSION}'}")
 
 
 def build_portable() -> None:
@@ -93,7 +124,7 @@ def build_portable() -> None:
     cmd = _base_cmd() + ["--onefile", str(ROOT / "app_core" / "main.py")]
     print(f"Ejecutando: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
-    print(f"✅ Build portable completado: {DIST_DIR / f'Tardis-v{VERSION}.exe'}")
+    print(f"[OK] Build portable completado: {DIST_DIR / f'Tardis-v{VERSION}.exe'}")
 
 
 def build_installer() -> None:
