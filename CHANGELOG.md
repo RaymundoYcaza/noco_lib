@@ -1,5 +1,52 @@
 # Changelog
 
+## [0.2.0.2] — 2026-06-16
+
+### Added
+
+- **Pre-commit hook para auto-incrementar build number**
+  - Se creó `tardis/scripts/pre-commit-bump.sh`: hook de git que ejecuta
+    `bump_version.py` y staged `VERSION` automáticamente antes de cada commit.
+  - Se creó `tardis/scripts/install_hooks.py`: script para copiar el hook a
+    `.git/hooks/` y darle permisos de ejecución.
+  - Instalación: `python tardis/scripts/install_hooks.py` (una vez por clon).
+  - Ya no depende de GitHub Actions para incrementar el build number.
+
+- **Backup automático del .env antes de actualizar**
+  - `_backup_env()` en `updater.py`: respalda el `.env` en
+    `%APPDATA%/Tardis/.env.<timestamp>.backup` antes de ejecutar el instalador.
+  - No bloquea la actualización si el backup falla.
+
+- **Notificación de variables faltantes en .env**
+  - `_check_missing_env_vars()` en `config.py`: al iniciar la app, compara las
+    variables del `.env` del usuario contra `.env.example` y loggea un warning
+    si faltan variables nuevas.
+
+### Changed
+
+- **Splash screen: "LocalMail" → "Tardis"**
+  - El título del splash cambió de "LocalMail" a "Tardis".
+  - El subtítulo cambió de "Cliente de correo corporativo" a
+    "Sistema de gestión documental y comunicaciones".
+
+- **Nomenclatura neutral para build e instalador**
+  - `build.py`: `--name` cambió de `"Tardis-v{VERSION}"` a `"Tardis"` (sin versión
+    en la carpeta del .exe ni en el nombre del ejecutable).
+  - `build.py`: `build_installer()` ahora pasa la versión a Inno Setup mediante
+    `iscc /dMyAppVersion={VERSION}`, eliminando el hardcodeo en `.iss`.
+  - `tardis_setup.iss`: `Source` path cambió de `..\dist\Tardis-v{#MyAppVersion}\*`
+    a `..\dist\Tardis\*` (neutral). Los accesos directos nunca se rompen.
+  - Los instaladores en el share de red (`Tardis-v{version}-Setup.exe`) siguen
+    versionados — es correcto para artefactos de distribución.
+
+### Fixed
+
+- **CI: GitHub Actions fallaba con 403 al hacer git push**
+  - El `bump-version` job del workflow no podía pushear porque el token por defecto
+    (`GITHUB_TOKEN`) no tiene permisos de escritura.
+  - Solución temporal: se implementó el hook pre-commit local.
+  - Pendiente: configurar un PAT en Secrets del repo para reactivar el CI.
+
 ## [0.2.0.1] — 2026-06-16
 
 ### Fixed
