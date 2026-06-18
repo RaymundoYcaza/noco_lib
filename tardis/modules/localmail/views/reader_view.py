@@ -465,7 +465,7 @@ class ReaderView(QWidget):
         for att in parsed:
             title = att.get("title", "Archivo")
             size = att.get("size", 0)
-            url = att.get("signedPath") or att.get("path", "")
+            url = (att.get("signedUrl") or att.get("signedPath") or att.get("url") or att.get("path", ""))
 
             # Fila con borde visible, hover y cursor pointer
             row = QWidget()

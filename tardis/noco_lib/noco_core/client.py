@@ -48,7 +48,9 @@ class NocoClient:
         self._session = requests.Session()
         self._session.headers.update({
             "xc-token": self.token,
-            "Content-Type": "application/json",
+            # NOTA: NO fijamos Content-Type aquí. La librería requests lo asigna
+            # automáticamente según el contenido: json= → application/json,
+            # files= → multipart/form-data, data=dict → application/x-www-form-urlencoded.
         })
 
     # ------------------------------------------------------------------
@@ -248,16 +250,23 @@ class NocoClient:
                     "POST", "/api/v2/storage/upload", files=files
                 )
 
-            # Nota: _request establece Content-Type: application/json por defecto,
-            # pero requests sobrescribe el Content-Type a multipart/form-data
-            # cuando se pasa el parámetro 'files'.
             if not ok:
                 return NocoResult.fail("create", errors)
 
             if not data:
                 return NocoResult.fail("create", "La respuesta del servidor no contiene datos.")
 
-            return NocoResult.ok("create", data=data, affected_count=1)
+            # Normalizar: la API de NocoDB puede devolver [{}] (array) o {} (dict)
+            if isinstance(data, list):
+                if len(data) == 0:
+                    return NocoResult.fail(
+                        "create",
+                        "La respuesta del servidor está vacía (array sin elementos)."
+                    )
+                normalized = data[0]
+            else:
+                normalized = data
+            return NocoResult.ok("create", data=normalized, affected_count=1)
 
         except Exception as exc:
             return NocoResult.fail("create", [f"Error al subir archivo: {str(exc)}"])
