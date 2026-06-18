@@ -1,6 +1,7 @@
 import os
 import sys
 import getpass
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -11,6 +12,8 @@ if str(noco_lib_dir) not in sys.path:
     sys.path.insert(0, str(noco_lib_dir))
 
 from noco_core.config import load_env
+
+logger = logging.getLogger("tardis")
 
 @dataclass
 class TardisConfig:
