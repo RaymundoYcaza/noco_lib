@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.2.0.7] — 2026-06-18
+
+### Fixed
+
+- **Adjuntos no se enviaban por conflicto de Content-Type en sesión HTTP**
+  - La sesión HTTP del cliente NocoDB tenía fijo el header
+    `Content-Type: application/json`, lo que interfería con las peticiones
+    multipart al endpoint `/api/v2/storage/upload` de NocoDB.
+  - Al enviar un correo con adjunto, el upload del archivo fallaba con
+    `HTTP 400 ERR_INVALID_JSON` porque NocoDB recibía el body multipart
+    con Content-Type incorrecto.
+  - **Fix**: Eliminado `Content-Type` de los headers de sesión. La librería
+    `requests` asigna automáticamente el header correcto según el contenido:
+    `json=` → `application/json`, `files=` → `multipart/form-data`.
+  - Se normalizó la respuesta de `upload_attachment()` para extraer el objeto
+    del array `[{...}]` que devuelve la API de NocoDB.
+  - Se amplió el fallback de campos URL en `reader_view.py`:
+    `signedUrl → signedPath → url → path`.
+  - Spec: `specs/1781827200000_tardis-bugfix-attachments/README.md`.
+
+### Changed
+
+- **Logger en config.py**
+  - Se agregó `import logging` y `logger = logging.getLogger("tardis")` en
+    `app_core/config.py` para diagnóstico.
+
 ## [0.2.0.2] — 2026-06-16
 
 ### Added
